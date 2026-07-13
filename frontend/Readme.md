@@ -1,1 +1,1 @@
-readme입니다.
+frontend 폴더입니다.

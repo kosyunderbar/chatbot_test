@@ -1,1 +1,1 @@
-readme입니다.
+backend 폴더입니다.
