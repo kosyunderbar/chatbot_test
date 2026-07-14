@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import axios from 'axios'
 import {
   getMockPosts,
   searchMockPosts,
@@ -9,6 +10,38 @@ import {
   deleteMockPost,
 } from '../repositories/boardRepository'
 import type { BoardPost, PostCategory, PostFormData } from '../types/board'
+
+/**
+ * Map HTTP error codes to user-friendly error messages
+ */
+function getErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status
+    const message = error.response?.data?.detail
+
+    if (status === 403) {
+      return '비밀번호가 일치하지 않습니다.'
+    }
+    if (status === 404) {
+      return '게시글을 찾을 수 없습니다.'
+    }
+    if (status === 422) {
+      return '입력 내용을 확인해 주세요.'
+    }
+    if (message && typeof message === 'string') {
+      return message
+    }
+    if (error.message === 'Network Error' || !error.response) {
+      return '서버에 연결할 수 없습니다.'
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return '요청 처리 중 오류가 발생했습니다.'
+}
 
 export const useBoardStore = defineStore('board', () => {
   const posts = ref<BoardPost[]>([])
@@ -26,7 +59,7 @@ export const useBoardStore = defineStore('board', () => {
     try {
       posts.value = await getMockPosts()
     } catch (error) {
-      errorMessage.value = '게시글을 불러오지 못했습니다.'
+      errorMessage.value = getErrorMessage(error)
       posts.value = []
     } finally {
       isLoading.value = false
@@ -40,7 +73,7 @@ export const useBoardStore = defineStore('board', () => {
     try {
       posts.value = await searchMockPosts(keyword.value, selectedCategory.value)
     } catch (error) {
-      errorMessage.value = '검색 결과를 불러오지 못했습니다.'
+      errorMessage.value = getErrorMessage(error)
       posts.value = []
     } finally {
       isLoading.value = false
@@ -57,7 +90,7 @@ export const useBoardStore = defineStore('board', () => {
         errorMessage.value = '게시글을 찾을 수 없습니다.'
       }
     } catch (error) {
-      errorMessage.value = '게시글을 불러오지 못했습니다.'
+      errorMessage.value = getErrorMessage(error)
       selectedPost.value = null
     } finally {
       isLoading.value = false
@@ -74,7 +107,7 @@ export const useBoardStore = defineStore('board', () => {
       const created = await createMockPost(payload)
       return created
     } catch (error) {
-      errorMessage.value = '게시글을 생성하지 못했습니다.'
+      errorMessage.value = getErrorMessage(error)
       return null
     } finally {
       isSubmitting.value = false
@@ -90,11 +123,7 @@ export const useBoardStore = defineStore('board', () => {
       selectedPost.value = updated
       return updated
     } catch (error) {
-      if (error instanceof Error) {
-        errorMessage.value = error.message
-      } else {
-        errorMessage.value = '게시글을 수정하지 못했습니다.'
-      }
+      errorMessage.value = getErrorMessage(error)
       return null
     } finally {
       isSubmitting.value = false
@@ -110,11 +139,7 @@ export const useBoardStore = defineStore('board', () => {
       selectedPost.value = null
       return true
     } catch (error) {
-      if (error instanceof Error) {
-        errorMessage.value = error.message
-      } else {
-        errorMessage.value = '게시글을 삭제하지 못했습니다.'
-      }
+      errorMessage.value = getErrorMessage(error)
       return false
     } finally {
       isSubmitting.value = false

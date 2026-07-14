@@ -6,6 +6,7 @@ import type {
   PostCreateRequest,
   PostUpdateRequest,
   PostDeleteRequest,
+  PostListApiResponse,
 } from '../types/board'
 
 const postMetadata: Record<number, { author: string; viewCount: number; commentCount: number }> = {
@@ -86,6 +87,55 @@ export const updateMockPost = async (id: number, payload: PostUpdateRequest): Pr
 }
 
 export const deleteMockPost = async (id: number, payload: PostDeleteRequest): Promise<void> => {
+  await httpClient.delete(`/api/posts/${id}`, {
+    data: payload,
+  })
+}
+
+// Real API functions (for when VITE_USE_MOCK_API is false)
+export const getPosts = async (params?: {
+  page?: number
+  size?: number
+  region?: string
+  category?: string
+  keyword?: string
+}): Promise<BoardPost[]> => {
+  const response = await httpClient.get<PostListApiResponse>('/api/posts', {
+    params: {
+      page: params?.page ?? 1,
+      size: params?.size ?? DEFAULT_PAGE_SIZE,
+      region: params?.region,
+      category: params?.category,
+      keyword: params?.keyword?.trim(),
+    },
+  })
+
+  return normalizePostList(response.data.items)
+}
+
+export const searchPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
+  return getPosts({
+    keyword: keyword.trim() || undefined,
+    category: category === 'all' ? undefined : category,
+  })
+}
+
+export const getPostById = async (id: number): Promise<BoardPost | null> => {
+  const response = await httpClient.get<PostApiItem>(`/api/posts/${id}`)
+  return mapPostApiItemToBoardPost(response.data)
+}
+
+export const createPost = async (payload: PostCreateRequest): Promise<BoardPost> => {
+  const response = await httpClient.post<PostApiItem>('/api/posts', payload)
+  return mapPostApiItemToBoardPost(response.data)
+}
+
+export const updatePost = async (id: number, payload: PostUpdateRequest): Promise<BoardPost> => {
+  const response = await httpClient.put<PostApiItem>(`/api/posts/${id}`, payload)
+  return mapPostApiItemToBoardPost(response.data)
+}
+
+export const deletePost = async (id: number, payload: PostDeleteRequest): Promise<void> => {
   await httpClient.delete(`/api/posts/${id}`, {
     data: payload,
   })

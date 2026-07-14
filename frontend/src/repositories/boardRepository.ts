@@ -5,6 +5,12 @@ import {
   createMockPost as createMockPostApi,
   updateMockPost as updateMockPostApi,
   deleteMockPost as deleteMockPostApi,
+  getPosts,
+  searchPosts,
+  getPostById,
+  createPost,
+  updatePost,
+  deletePost,
 } from '../api/boardApi'
 import { useMockApi } from '../config/appConfig'
 import type {
@@ -18,19 +24,14 @@ import type {
   PostListApiResponse,
 } from '../types/board'
 
-const throwFastApiNotReady = (): never => {
-  throw new Error('FastAPI 연동이 아직 준비되지 않았습니다.')
-}
-
 /**
  * Repository for Board/Post operations
- * Currently uses Mock API; will switch to FastAPI once backend is ready
- * API DTOs are imported for type safety and future backend integration
+ * Conditionally uses Mock API or real FastAPI based on VITE_USE_MOCK_API config
+ * Store layer remains unchanged, transparent to actual API source
  */
 
 /**
  * Transform PostApiItem (API DTO) to BoardPost (UI type)
- * Used when FastAPI integration is complete
  */
 export function transformPostApiItemToBoardPost(item: PostApiItem): BoardPost {
   return {
@@ -46,7 +47,6 @@ export function transformPostApiItemToBoardPost(item: PostApiItem): BoardPost {
 
 /**
  * Transform PostFormData (UI form) to PostCreateRequest (API DTO)
- * Used when FastAPI integration is complete
  */
 export function transformFormDataToPostCreateRequest(data: PostFormData): PostCreateRequest {
   return {
@@ -60,7 +60,6 @@ export function transformFormDataToPostCreateRequest(data: PostFormData): PostCr
 
 /**
  * Transform PostFormData (UI form) to PostUpdateRequest (API DTO)
- * Used when FastAPI integration is complete
  */
 export function transformFormDataToPostUpdateRequest(data: PostFormData): PostUpdateRequest {
   return {
@@ -74,7 +73,6 @@ export function transformFormDataToPostUpdateRequest(data: PostFormData): PostUp
 
 /**
  * Transform PostDeleteRequest payload
- * Used when FastAPI integration is complete
  */
 export function transformToPostDeleteRequest(password: string): PostDeleteRequest {
   return { password }
@@ -82,56 +80,69 @@ export function transformToPostDeleteRequest(password: string): PostDeleteReques
 
 /**
  * Transform PostListApiResponse (API DTO) to BoardPost[] (UI type)
- * Used when FastAPI integration is complete
  */
 export function transformPostListApiResponse(response: PostListApiResponse): BoardPost[] {
   return response.items.map(transformPostApiItemToBoardPost)
 }
 
 export const getMockPosts = async (): Promise<BoardPost[]> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+  if (useMockApi) {
+    return getMockPostsApi()
   }
-
-  return getMockPostsApi()
+  return getPosts()
 }
 
 export const searchMockPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+  if (useMockApi) {
+    return searchMockPostsApi(keyword, category)
   }
-
-  return searchMockPostsApi(keyword, category)
+  return searchPosts(keyword, category)
 }
 
 export const getMockPostById = async (id: number): Promise<BoardPost | null> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+  if (useMockApi) {
+    return getMockPostByIdApi(id)
   }
-
-  return getMockPostByIdApi(id)
+  return getPostById(id)
 }
 
 export const createMockPost = async (payload: PostFormData): Promise<BoardPost> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+  const createPayload: PostCreateRequest = {
+    title: payload.title,
+    content: payload.content,
+    password: payload.password,
+    region: payload.region || undefined,
+    category: payload.category || undefined,
   }
 
-  return createMockPostApi(payload)
+  if (useMockApi) {
+    return createMockPostApi(createPayload)
+  }
+  return createPost(createPayload)
 }
 
 export const updateMockPost = async (id: number, payload: PostFormData): Promise<BoardPost> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+  const updatePayload: PostUpdateRequest = {
+    title: payload.title,
+    content: payload.content,
+    password: payload.password,
+    region: payload.region || undefined,
+    category: payload.category || undefined,
   }
 
-  return updateMockPostApi(id, payload)
+  if (useMockApi) {
+    return updateMockPostApi(id, updatePayload)
+  }
+  return updatePost(id, updatePayload)
 }
 
 export const deleteMockPost = async (id: number, payload: { password: string }): Promise<void> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+  const deletePayload: PostDeleteRequest = {
+    password: payload.password,
   }
 
-  return deleteMockPostApi(id, payload)
+  if (useMockApi) {
+    return deleteMockPostApi(id, deletePayload)
+  }
+  return deletePost(id, deletePayload)
 }
