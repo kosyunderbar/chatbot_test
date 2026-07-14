@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
+from .chatbot import ChatbotError, chat_turn
 from .deepl import DeepLTranslationError, translate_text
 from .database import Base, engine, get_db, run_migrations
 from .tour_data import get_location_detail, list_locations, list_map_locations
@@ -300,6 +301,24 @@ def translate(request: schemas.TranslateRequest):
         )
     except DeepLTranslationError as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+
+
+@app.post("/api/chat", response_model=schemas.ChatResponse)
+def chat(request: schemas.ChatRequest):
+    history = [
+        {"role": item.role, "content": item.content}
+        for item in (request.history or [])
+    ]
+    try:
+        answer = chat_turn(request.message, history)
+    except ChatbotError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="챗봇 응답 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        ) from exc
+    return {"answer": answer}
 
 
 @app.get("/api/locations", response_model=schemas.LocationListResponse)

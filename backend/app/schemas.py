@@ -154,3 +154,18 @@ class MapPopularPostItem(BaseModel):
 
 class MapPopularPostResponse(BaseModel):
     items: list[MapPopularPostItem]
+
+
+class ChatHistoryItem(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(..., min_length=1)
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(..., min_length=1)
+    region: str | None = None
+    history: list[ChatHistoryItem] | None = None
+
+
+class ChatResponse(BaseModel):
+    answer: str
