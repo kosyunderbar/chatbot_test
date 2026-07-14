@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { usePresence } from '../../composables/usePresence'
+
+const { activeVisitors } = usePresence()
 </script>
 
 <template>
@@ -10,6 +13,9 @@ import { RouterLink } from 'vue-router'
         <h1 class="text-3xl font-bold sm:text-4xl lg:text-5xl">서울을 더 가깝게, LocalHub</h1>
         <p class="mt-4 text-base text-sky-100 sm:text-lg">
           관광 정보와 지역 커뮤니티를 한곳에서 만나보세요.
+        </p>
+        <p class="mt-5 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white">
+          {{ activeVisitors.toLocaleString() }}명 접속 중
         </p>
       </div>
 
