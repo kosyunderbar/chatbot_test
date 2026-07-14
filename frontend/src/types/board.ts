@@ -3,7 +3,7 @@
  * These types match the FastAPI backend response format
  */
 
-export type PostCategory = 'all' | 'free' | 'question' | 'recommendation'
+export type PostCategory = 'all' | 'free' | 'question' | 'recommendation' | 'food'
 
 /**
  * API response DTO for a single post from backend
