@@ -1,21 +1,20 @@
 <script setup lang="ts">
-// @ts-ignore
-import attractions from '../../mock/attractions.json'
+import { onMounted, ref } from 'vue'
+import { getPopularTours } from '../../repositories/tourRepository'
+import type { TourItem } from '../../types/tour'
 
-const tours = (attractions.items as Array<{
-  contentid: string
-  title: string
-  addr1: string
-  addr2: string
-  firstimage: string
-  firstimage2: string
-}>).slice(0, 3).map((item) => ({
-  id: item.contentid,
-  name: item.title,
-  region: item.addr1,
-  description: '서울의 대표 관광지 정보입니다.',
-  imageUrl: item.firstimage2 || item.firstimage,
-}))
+const tours = ref<TourItem[]>([])
+const isLoading = ref(false)
+
+onMounted(async () => {
+  isLoading.value = true
+
+  try {
+    tours.value = await getPopularTours()
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
 
 <template>
@@ -27,7 +26,11 @@ const tours = (attractions.items as Array<{
       </div>
     </div>
 
-    <div class="grid gap-6 md:grid-cols-3">
+    <div v-if="isLoading" class="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-10 text-center text-sm text-gray-500">
+      인기 관광지를 불러오는 중입니다...
+    </div>
+
+    <div v-else class="grid gap-6 md:grid-cols-3">
       <article
         v-for="tour in tours"
         :key="tour.id"
@@ -36,16 +39,16 @@ const tours = (attractions.items as Array<{
         <img
           v-if="tour.imageUrl"
           :src="tour.imageUrl"
-          :alt="tour.name"
+          :alt="tour.title"
           class="h-40 w-full object-cover"
         />
         <div v-else class="flex h-40 items-center justify-center bg-gray-200 text-sm text-gray-500">
           사진 없음
         </div>
         <div class="p-5">
-          <h3 class="text-lg font-semibold text-gray-900">{{ tour.name }}</h3>
-          <p class="mt-1 text-sm text-gray-500">{{ tour.region }}</p>
-          <p class="mt-3 text-sm text-gray-600">{{ tour.description }}</p>
+          <h3 class="text-lg font-semibold text-gray-900">{{ tour.title }}</h3>
+          <p class="mt-1 text-sm text-gray-500">{{ tour.address || '주소 정보 없음' }}</p>
+          <p class="mt-3 text-sm text-gray-600">{{ tour.category }}</p>
         </div>
       </article>
     </div>

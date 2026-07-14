@@ -47,3 +47,25 @@ class TranslateResponse(BaseModel):
     translated_text: str
     target_lang: str
     detected_source_lang: str | None = None
+
+
+class LocationItem(BaseModel):
+    id: int
+    contentid: str
+    contenttypeid: str
+    content_type_name: str
+    title: str
+    addr1: str
+    addr2: str
+    tel: str
+    mapx: float | None = None
+    mapy: float | None = None
+    firstimage: str
+    firstimage2: str
+
+
+class LocationListResponse(BaseModel):
+    items: list[LocationItem]
+    total: int
+    category: str
+    keyword: str | None = None

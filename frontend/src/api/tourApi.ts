@@ -1,67 +1,91 @@
-// @ts-ignore
-import attractions from '../mock/attractions.json'
-// @ts-ignore
-import leisure from '../mock/leisure.json'
-// @ts-ignore
-import culture from '../mock/culture.json'
-// @ts-ignore
-import shopping from '../mock/shopping.json'
-// @ts-ignore
-import accommodation from '../mock/accommodation.json'
-// @ts-ignore
-import courses from '../mock/courses.json'
-// @ts-ignore
-import festivals from '../mock/festivals.json'
-import type { TourApiResponse, TourCategory, TourItem } from '../types/tour'
+import httpClient from './httpClient'
+import type { TourCategory, TourItem } from '../types/tour'
 
-const datasets: Array<{ data: TourApiResponse; category: TourCategory }> = [
-  { data: attractions as TourApiResponse, category: 'attraction' },
-  { data: leisure as TourApiResponse, category: 'leisure' },
-  { data: culture as TourApiResponse, category: 'culture' },
-  { data: shopping as TourApiResponse, category: 'shopping' },
-  { data: accommodation as TourApiResponse, category: 'accommodation' },
-  { data: courses as TourApiResponse, category: 'course' },
-  { data: festivals as TourApiResponse, category: 'festival' },
-]
+interface LocationApiItem {
+  id: number
+  contentid: string
+  contenttypeid: string
+  content_type_name: string
+  title: string
+  addr1: string
+  addr2: string
+  tel: string
+  mapx: number | null
+  mapy: number | null
+  firstimage: string
+  firstimage2: string
+}
 
-const mapToTourItem = (item: TourApiResponse['items'][number], category: TourCategory): TourItem => ({
-  id: item.contentid,
-  title: item.title,
-  category,
-  address: [item.addr1, item.addr2].filter(Boolean).join(' '),
-  imageUrl: item.firstimage || '',
-  thumbnailUrl: item.firstimage2 || '',
-  longitude: item.mapx ? Number(item.mapx) : null,
-  latitude: item.mapy ? Number(item.mapy) : null,
-  telephone: item.tel || '',
-})
+interface LocationListApiResponse {
+  items: LocationApiItem[]
+  total: number
+  category: string
+  keyword: string | null
+}
 
-const getAllMockTours = (): TourItem[] => {
-  return datasets.flatMap(({ data, category }) => data.items.map((item) => mapToTourItem(item, category)))
+const CONTENTTYPE_ID_TO_CATEGORY: Record<string, TourCategory> = {
+  '12': 'attraction',
+  '28': 'leisure',
+  '14': 'culture',
+  '38': 'shopping',
+  '32': 'accommodation',
+  '25': 'course',
+  '15': 'festival',
+}
+
+const mapLocationToTourItem = (item: LocationApiItem): TourItem | null => {
+  const category = CONTENTTYPE_ID_TO_CATEGORY[item.contenttypeid]
+
+  if (!category) {
+    return null
+  }
+
+  return {
+    id: item.contentid,
+    title: item.title,
+    category,
+    address: [item.addr1, item.addr2].filter(Boolean).join(' '),
+    imageUrl: item.firstimage2 || item.firstimage || '',
+    thumbnailUrl: item.firstimage2 || item.firstimage || '',
+    longitude: item.mapx,
+    latitude: item.mapy,
+    telephone: item.tel || '',
+  }
+}
+
+const fetchLocations = async ({
+  category = 'all',
+  keyword,
+  limit,
+}: {
+  category?: TourCategory | 'all'
+  keyword?: string
+  limit?: number
+} = {}): Promise<TourItem[]> => {
+  const response = await httpClient.get<LocationListApiResponse>('/api/locations', {
+    params: {
+      category,
+      keyword: keyword?.trim() || undefined,
+      limit,
+    },
+  })
+
+  return response.data.items
+    .map(mapLocationToTourItem)
+    .filter((item): item is TourItem => item !== null)
 }
 
 export const getMockTours = async (): Promise<TourItem[]> => {
-  return getAllMockTours()
+  return fetchLocations({ category: 'all' })
 }
 
-export const getMockToursByCategory = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
-  if (category === 'all') {
-    return getAllMockTours()
-  }
-
-  return getAllMockTours().filter((item) => item.category === category)
+export const getMockToursByCategory = async (
+  category: TourCategory | 'all' = 'all',
+  limit?: number,
+): Promise<TourItem[]> => {
+  return fetchLocations({ category, limit })
 }
 
 export const searchMockTours = async (keyword: string, category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
-  const normalizedKeyword = keyword.trim().toLowerCase()
-  const source = category === 'all' ? getAllMockTours() : await getMockToursByCategory(category)
-
-  if (!normalizedKeyword) {
-    return source
-  }
-
-  return source.filter((item) => {
-    const haystack = `${item.title} ${item.address}`.toLowerCase()
-    return haystack.includes(normalizedKeyword)
-  })
+  return fetchLocations({ category, keyword })
 }

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from . import crud, schemas
 from .deepl import DeepLTranslationError, translate_text
 from .database import Base, engine, get_db
+from .tour_data import list_locations
 
 Base.metadata.create_all(bind=engine)
 
@@ -87,3 +88,18 @@ def translate(request: schemas.TranslateRequest):
         )
     except DeepLTranslationError as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+
+
+@app.get("/api/locations", response_model=schemas.LocationListResponse)
+def read_locations(
+    category: str = Query(default="all"),
+    keyword: str | None = None,
+    limit: int | None = Query(default=None, ge=1, le=5000),
+    offset: int = Query(default=0, ge=0),
+):
+    try:
+        items, total = list_locations(category=category, keyword=keyword, limit=limit, offset=offset)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    return {"items": items, "total": total, "category": category, "keyword": keyword}
