@@ -14,8 +14,27 @@ export interface PostApiItem {
   content: string
   region: string | null
   category: string | null
+  view_count: number
+  like_count: number
+  is_liked: boolean
+  tags: TagApiItem[]
+  images: PostImageApiItem[]
   created_at: string
   updated_at: string
+}
+
+export interface TagApiItem {
+  id: number
+  name: string
+}
+
+export interface PostImageApiItem {
+  id: number
+  url: string
+  original_name: string
+  mime_type: string
+  size: number
+  sort_order: number
 }
 
 /**
@@ -37,6 +56,8 @@ export interface PostCreateRequest {
   password: string
   region?: string
   category?: string
+  tags?: string[]
+  image_ids?: number[]
 }
 
 /**
@@ -48,6 +69,8 @@ export interface PostUpdateRequest {
   password: string
   region?: string
   category?: string
+  tags?: string[]
+  image_ids?: number[]
 }
 
 /**
@@ -63,6 +86,9 @@ export interface PostFormData {
   password: string
   region: string
   category: string
+  tags: string[]
+  existingImages: PostImageApiItem[]
+  newImages: File[]
 }
 
 export interface PostDeletePayload {
@@ -78,10 +104,10 @@ export interface BoardPost {
   createdAt: string
   updatedAt: string
   author?: string
-  viewCount?: number
+  viewCount: number
   commentCount?: number
-  likeCount?: number
-  isLiked?: boolean
-  tags?: string[]
-  imageUrls?: string[]
+  likeCount: number
+  isLiked: boolean
+  tags: string[]
+  images: PostImageApiItem[]
 }

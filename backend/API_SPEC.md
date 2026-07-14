@@ -1,5 +1,58 @@
 # LocalHub Backend API Specification
 
+## Post engagement, tags, and images
+
+## Active visitor presence
+
+- `POST /api/presence/heartbeat`: records the current visitor as active. Requires an `X-Visitor-Id` header.
+- `GET /api/presence`: returns the number of visitors with a heartbeat in the past 60 seconds.
+
+```json
+{
+  "active_visitors": 3,
+  "expires_in_seconds": 60
+}
+```
+
+The presence registry is in memory, so it is reset when the server restarts and is local to a single server process.
+
+### Post list search and sorting
+
+`GET /api/posts` additionally accepts the following query parameters:
+
+- `keyword`: search term
+- `search_in`: comma-separated search scopes: `title`, `content`, and/or `tag` (default: `title,content,tag`)
+- `sort`: `latest`, `views`, or `likes` (default: `latest`)
+
+Post responses now include `view_count`, `like_count`, `is_liked`, `tags`, and `images`. A post detail request increments `view_count`.
+
+### Likes
+
+- `POST /api/posts/{post_id}/likes`: adds a like
+- `DELETE /api/posts/{post_id}/likes`: removes a like
+
+Both endpoints require an `X-Visitor-Id` request header. The value identifies an anonymous browser and prevents duplicate likes for the same post.
+
+### Tags
+
+`GET /api/tags?keyword=&limit=20` returns matching tags for autocomplete. Create and update post payloads accept optional `tags` (maximum 10) and `image_ids` (maximum 5) fields. For updates, omitting either field keeps its current value; supplying `[]` clears it.
+
+```json
+{
+  "title": "서울 산책 추천",
+  "content": "한강 주변을 걸었어요.",
+  "password": "1234",
+  "tags": ["서울", "산책"],
+  "image_ids": [1, 2]
+}
+```
+
+### Image uploads
+
+`POST /api/uploads/images` accepts `multipart/form-data` with an `image` file field and requires `X-Visitor-Id`. JPEG, PNG, and WebP files up to 5 MB are accepted. The returned image `id` is passed as `image_ids` when creating or updating a post. Files are served at `/uploads/{storage_name}`.
+
+`DELETE /api/uploads/images/{image_id}` deletes an unattached image owned by the current visitor.
+
 이 문서는 현재 `backend/app/main.py` 기준으로 구현된 FastAPI API를 정리한 문서다.
 
 ## 1. Base Information

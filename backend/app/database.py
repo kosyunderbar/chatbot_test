@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = "sqlite:///./localhub.db"
@@ -15,3 +15,17 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def run_migrations():
+    """Apply additive SQLite migrations for databases created before new post fields."""
+    inspector = inspect(engine)
+    if "posts" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("posts")}
+    with engine.begin() as connection:
+        if "view_count" not in columns:
+            connection.execute(text("ALTER TABLE posts ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0"))
+        if "like_count" not in columns:
+            connection.execute(text("ALTER TABLE posts ADD COLUMN like_count INTEGER NOT NULL DEFAULT 0"))

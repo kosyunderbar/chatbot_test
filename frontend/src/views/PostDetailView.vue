@@ -28,6 +28,10 @@ const handleDelete = () => {
   showPasswordModal.value = true
 }
 
+const handleLike = async () => {
+  if (selectedPost.value) await boardStore.toggleLike(selectedPost.value)
+}
+
 const handleBack = () => {
   router.push({ name: 'community' })
 }
@@ -48,7 +52,7 @@ const handleConfirmPassword = async (password: string) => {
         불러오는 중입니다...
       </div>
       <div v-else-if="selectedPost">
-        <PostDetail :post="selectedPost" @edit="handleEdit" @delete="handleDelete" @back="handleBack" />
+        <PostDetail :post="selectedPost" @edit="handleEdit" @delete="handleDelete" @back="handleBack" @like="handleLike" />
       </div>
       <div v-else class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <BaseEmpty title="게시글을 찾을 수 없습니다." description="존재하지 않는 게시글이거나 삭제된 게시글입니다." />

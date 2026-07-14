@@ -4,77 +4,32 @@ import type {
   PostApiItem,
   PostCategory,
   PostCreateRequest,
-  PostUpdateRequest,
   PostDeleteRequest,
+  PostImageApiItem,
   PostListApiResponse,
+  PostUpdateRequest,
+  TagApiItem,
 } from '../types/board'
 
-const postMetadata: Record<number, { author: string; viewCount: number; commentCount: number }> = {
-  1: { author: '민지', viewCount: 128, commentCount: 5 },
-  2: { author: '도윤', viewCount: 102, commentCount: 3 },
-  3: { author: '서연', viewCount: 86, commentCount: 2 },
-  4: { author: '준호', viewCount: 145, commentCount: 6 },
-  5: { author: '하린', viewCount: 71, commentCount: 4 },
-  6: { author: '유진', viewCount: 94, commentCount: 3 },
-  7: { author: '태현', viewCount: 112, commentCount: 5 },
-  8: { author: '소희', viewCount: 63, commentCount: 2 },
-  9: { author: '예린', viewCount: 88, commentCount: 4 },
-  10: { author: '지훈', viewCount: 77, commentCount: 2 },
-  11: { author: '은우', viewCount: 132, commentCount: 7 },
-  12: { author: '나연', viewCount: 59, commentCount: 1 },
+const resolveImageUrl = (url: string) => {
+  if (/^https?:\/\//.test(url)) return url
+  return new URL(url, httpClient.defaults.baseURL || window.location.origin).toString()
 }
 
-const DEFAULT_PAGE_SIZE = 100
-
-export const mapPostApiItemToBoardPost = (item: PostApiItem): BoardPost => {
-  return {
-    id: item.id,
-    title: item.title,
-    content: item.content,
-    region: item.region ?? '',
-    category: item.category ?? '',
-    createdAt: item.created_at,
-    updatedAt: item.updated_at,
-    ...postMetadata[item.id],
-  }
-}
-
-const sortByNewest = (items: BoardPost[]): BoardPost[] => {
-  return [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-}
-
-const normalizePostList = (items: PostApiItem[]): BoardPost[] => {
-  return sortByNewest(items.map(mapPostApiItemToBoardPost))
-}
-
-export const getMockPosts = async (): Promise<BoardPost[]> => {
-  return getPosts()
-}
-
-export const searchMockPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
-  return searchPosts(keyword, category)
-}
-
-export const getMockPostById = async (id: number): Promise<BoardPost | null> => {
-  const response = await httpClient.get<PostApiItem>(`/api/posts/${id}`)
-  return mapPostApiItemToBoardPost(response.data)
-}
-
-export const createMockPost = async (payload: PostCreateRequest): Promise<BoardPost> => {
-  const response = await httpClient.post<PostApiItem>('/api/posts', payload)
-  return mapPostApiItemToBoardPost(response.data)
-}
-
-export const updateMockPost = async (id: number, payload: PostUpdateRequest): Promise<BoardPost> => {
-  const response = await httpClient.put<PostApiItem>(`/api/posts/${id}`, payload)
-  return mapPostApiItemToBoardPost(response.data)
-}
-
-export const deleteMockPost = async (id: number, payload: PostDeleteRequest): Promise<void> => {
-  await httpClient.delete(`/api/posts/${id}`, {
-    data: payload,
-  })
-}
+export const mapPostApiItemToBoardPost = (item: PostApiItem): BoardPost => ({
+  id: item.id,
+  title: item.title,
+  content: item.content,
+  region: item.region ?? '',
+  category: item.category ?? '',
+  createdAt: item.created_at,
+  updatedAt: item.updated_at,
+  viewCount: item.view_count,
+  likeCount: item.like_count,
+  isLiked: item.is_liked,
+  tags: item.tags.map((tag) => tag.name),
+  images: item.images.map((image) => ({ ...image, url: resolveImageUrl(image.url) })),
+})
 
 export const getPosts = async (params?: {
   page?: number
@@ -82,28 +37,27 @@ export const getPosts = async (params?: {
   region?: string
   category?: string
   keyword?: string
+  searchIn?: string
+  sort?: 'latest' | 'views' | 'likes'
 }): Promise<BoardPost[]> => {
   const response = await httpClient.get<PostListApiResponse>('/api/posts', {
     params: {
       page: params?.page ?? 1,
-      size: params?.size ?? DEFAULT_PAGE_SIZE,
+      size: params?.size ?? 100,
       region: params?.region,
       category: params?.category,
-      keyword: params?.keyword?.trim(),
+      keyword: params?.keyword?.trim() || undefined,
+      search_in: params?.searchIn,
+      sort: params?.sort,
     },
   })
-
-  return normalizePostList(response.data.items)
+  return response.data.items.map(mapPostApiItemToBoardPost)
 }
 
-export const searchPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
-  return getPosts({
-    keyword: keyword.trim() || undefined,
-    category: category === 'all' ? undefined : category,
-  })
-}
+export const searchPosts = (keyword: string, category: PostCategory = 'all') =>
+  getPosts({ keyword, category: category === 'all' ? undefined : category })
 
-export const getPostById = async (id: number): Promise<BoardPost | null> => {
+export const getPostById = async (id: number): Promise<BoardPost> => {
   const response = await httpClient.get<PostApiItem>(`/api/posts/${id}`)
   return mapPostApiItemToBoardPost(response.data)
 }
@@ -118,8 +72,27 @@ export const updatePost = async (id: number, payload: PostUpdateRequest): Promis
   return mapPostApiItemToBoardPost(response.data)
 }
 
-export const deletePost = async (id: number, payload: PostDeleteRequest): Promise<void> => {
-  await httpClient.delete(`/api/posts/${id}`, {
-    data: payload,
-  })
+export const deletePost = (id: number, payload: PostDeleteRequest) => httpClient.delete(`/api/posts/${id}`, { data: payload })
+
+export const togglePostLike = async (id: number, liked: boolean) => {
+  const response = liked
+    ? await httpClient.delete<{ liked: boolean; like_count: number }>(`/api/posts/${id}/likes`)
+    : await httpClient.post<{ liked: boolean; like_count: number }>(`/api/posts/${id}/likes`)
+  return response.data
 }
+
+export const getTags = async (keyword: string): Promise<TagApiItem[]> => {
+  const response = await httpClient.get<TagApiItem[]>('/api/tags', { params: { keyword } })
+  return response.data
+}
+
+export const uploadPostImage = async (file: File): Promise<PostImageApiItem> => {
+  const formData = new FormData()
+  formData.append('image', file)
+  const response = await httpClient.post<PostImageApiItem>('/api/uploads/images', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return { ...response.data, url: resolveImageUrl(response.data.url) }
+}
+
+export const deleteUploadedImage = (imageId: number) => httpClient.delete(`/api/uploads/images/${imageId}`)

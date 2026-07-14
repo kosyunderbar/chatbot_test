@@ -12,6 +12,7 @@ const emit = defineEmits<{
   (e: 'edit'): void
   (e: 'delete'): void
   (e: 'back'): void
+  (e: 'like'): void
 }>()
 
 const handleEdit = () => emit('edit')
@@ -55,16 +56,17 @@ const handleBack = () => emit('back')
         <div class="mt-3 whitespace-pre-wrap rounded-xl border border-gray-200 bg-gray-50 p-5 text-gray-800">{{ props.post.content }}</div>
       </div>
       <PostShareButtons :title="props.post.title" :description="props.post.content" />
+      <BaseButton variant="secondary" size="md" @click="emit('like')">{{ props.post.isLiked ? '좋아요 취소' : '좋아요' }} {{ props.post.likeCount }}</BaseButton>
       <div v-if="props.post.tags && props.post.tags.length" class="space-y-2">
         <p class="text-sm text-gray-500">태그</p>
         <div class="flex flex-wrap gap-2">
           <span v-for="tag in props.post.tags" :key="tag" class="rounded-full bg-sky-50 px-2.5 py-1 text-sm text-sky-700">#{{ tag }}</span>
         </div>
       </div>
-      <div v-if="props.post.imageUrls && props.post.imageUrls.length" class="space-y-2">
+      <div v-if="props.post.images.length" class="space-y-2">
         <p class="text-sm text-gray-500">첨부 이미지</p>
         <div class="flex flex-wrap gap-3">
-          <img v-for="imageUrl in props.post.imageUrls" :key="imageUrl" :src="imageUrl" alt="첨부 이미지" class="h-32 w-auto rounded-xl border border-gray-200 object-cover" />
+          <img v-for="image in props.post.images" :key="image.id" :src="image.url" :alt="image.original_name" class="h-32 w-auto rounded-xl border border-gray-200 object-cover" />
         </div>
       </div>
     </div>

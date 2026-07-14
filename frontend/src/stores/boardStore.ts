@@ -1,14 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axios from 'axios'
-import {
-  getMockPosts,
-  searchMockPosts,
-  getMockPostById,
-  createMockPost,
-  updateMockPost,
-  deleteMockPost,
-} from '../repositories/boardRepository'
+import { createBoardPost, getBoardPostById, getBoardPosts, removeBoardPost, searchBoardPosts, toggleBoardPostLike, updateBoardPost } from '../repositories/boardRepository'
 import type { BoardPost, PostCategory, PostFormData } from '../types/board'
 
 /**
@@ -57,7 +50,7 @@ export const useBoardStore = defineStore('board', () => {
     errorMessage.value = ''
 
     try {
-      posts.value = await getMockPosts()
+      posts.value = await getBoardPosts()
     } catch (error) {
       errorMessage.value = getErrorMessage(error)
       posts.value = []
@@ -72,7 +65,7 @@ export const useBoardStore = defineStore('board', () => {
 
     try {
       const trimmedKeyword = keyword.value.trim()
-      posts.value = await searchMockPosts(trimmedKeyword, selectedCategory.value)
+      posts.value = await searchBoardPosts(trimmedKeyword, selectedCategory.value)
     } catch (error) {
       errorMessage.value = '게시글을 검색하는 중 오류가 발생했습니다.'
       posts.value = []
@@ -86,7 +79,7 @@ export const useBoardStore = defineStore('board', () => {
     errorMessage.value = ''
 
     try {
-      selectedPost.value = await getMockPostById(id)
+      selectedPost.value = await getBoardPostById(id)
       if (!selectedPost.value) {
         errorMessage.value = '게시글을 찾을 수 없습니다.'
       }
@@ -105,7 +98,7 @@ export const useBoardStore = defineStore('board', () => {
     errorMessage.value = ''
 
     try {
-      const created = await createMockPost(payload)
+      const created = await createBoardPost(payload)
       return created
     } catch (error) {
       errorMessage.value = getErrorMessage(error)
@@ -120,7 +113,7 @@ export const useBoardStore = defineStore('board', () => {
     errorMessage.value = ''
 
     try {
-      const updated = await updateMockPost(id, payload)
+      const updated = await updateBoardPost(id, payload)
       selectedPost.value = updated
       return updated
     } catch (error) {
@@ -136,7 +129,7 @@ export const useBoardStore = defineStore('board', () => {
     errorMessage.value = ''
 
     try {
-      await deleteMockPost(id, { password })
+      await removeBoardPost(id, password)
       selectedPost.value = null
       return true
     } catch (error) {
@@ -150,6 +143,18 @@ export const useBoardStore = defineStore('board', () => {
   const clearSelectedPost = () => {
     selectedPost.value = null
     errorMessage.value = ''
+  }
+
+  const toggleLike = async (post: BoardPost) => {
+    const result = await toggleBoardPostLike(post.id, post.isLiked)
+    const applyLike = (item: BoardPost) => {
+      if (item.id === post.id) {
+        item.isLiked = result.liked
+        item.likeCount = result.like_count
+      }
+    }
+    if (selectedPost.value) applyLike(selectedPost.value)
+    posts.value.forEach(applyLike)
   }
 
   const setKeyword = (value: string) => {
@@ -187,6 +192,7 @@ export const useBoardStore = defineStore('board', () => {
     updatePost,
     deletePost,
     clearSelectedPost,
+    toggleLike,
     setKeyword,
     changeCategory,
     resetFilters,
