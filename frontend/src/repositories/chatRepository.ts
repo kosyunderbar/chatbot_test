@@ -1,28 +1,16 @@
 import {
   getInitialMockMessages as getInitialMockMessagesApi,
   getMockSuggestions as getMockSuggestionsApi,
+  sendChatMessage as sendChatMessageApi,
   sendMockChatMessage as sendMockChatMessageApi,
 } from '../api/chatApi'
 import { useMockApi } from '../config/appConfig'
-import type { ChatMessage, ChatResponse, ChatSuggestion, ChatRequest, ChatApiResponse } from '../types/chat'
-
-const throwFastApiNotReady = (): never => {
-  throw new Error('FastAPI 연동이 아직 준비되지 않았습니다.')
-}
+import type { ChatApiResponse, ChatMessage, ChatRequest, ChatResponse, ChatSuggestion } from '../types/chat'
 
 /**
- * Repository for Chat operations
- * Currently uses Mock API; will switch to FastAPI once backend is ready
- * API DTOs are imported for type safety and future backend integration
- *
- * When FastAPI is ready:
- * - sendMockChatMessage will use ChatRequest to send data to backend
- * - Backend will return ChatApiResponse which will be transformed to ChatResponse
- */
-
-/**
- * Transform ChatApiResponse (API DTO) to ChatResponse (UI type)
- * Used when FastAPI integration is complete
+ * Repository for Chat operations.
+ * The store only depends on this layer, so switching between mock and real API
+ * can be handled here without changing the rest of the frontend.
  */
 export function transformChatApiResponseToChatResponse(apiResponse: ChatApiResponse, messageId: string): ChatResponse {
   return {
@@ -35,38 +23,38 @@ export function transformChatApiResponseToChatResponse(apiResponse: ChatApiRespo
   }
 }
 
-/**
- * Transform ChatMessage[] and new message to ChatRequest (API DTO)
- * Used when FastAPI integration is complete
- */
 export function transformChatMessagesToChatRequest(content: string, history?: ChatMessage[], region?: string): ChatRequest {
   return {
     message: content,
     region,
-    history,
+    history: history?.map(({ role, content: historyContent }) => ({ role, content: historyContent })),
   }
 }
 
-export const getInitialMockMessages = async (): Promise<ChatMessage[]> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
-  }
-
+export const getInitialMessages = async (): Promise<ChatMessage[]> => {
   return getInitialMockMessagesApi()
 }
 
-export const getMockSuggestions = async (): Promise<ChatSuggestion[]> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
-  }
-
+export const getSuggestions = async (): Promise<ChatSuggestion[]> => {
   return getMockSuggestionsApi()
 }
 
-export const sendMockChatMessage = async (content: string): Promise<ChatResponse> => {
-  if (!useMockApi) {
-    throwFastApiNotReady()
+export const sendMessage = async (payload: ChatRequest): Promise<ChatResponse> => {
+  if (useMockApi) {
+    return sendMockChatMessageApi(payload.message)
   }
 
+  return sendChatMessageApi(payload)
+}
+
+export const getInitialMockMessages = async (): Promise<ChatMessage[]> => {
+  return getInitialMessages()
+}
+
+export const getMockSuggestions = async (): Promise<ChatSuggestion[]> => {
+  return getSuggestions()
+}
+
+export const sendMockChatMessage = async (content: string): Promise<ChatResponse> => {
   return sendMockChatMessageApi(content)
 }

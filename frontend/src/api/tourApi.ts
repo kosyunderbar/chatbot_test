@@ -40,11 +40,7 @@ const getAllMockTours = (): TourItem[] => {
   return datasets.flatMap(({ data, category }) => data.items.map((item) => mapToTourItem(item, category)))
 }
 
-export const getMockTours = async (): Promise<TourItem[]> => {
-  return getAllMockTours()
-}
-
-export const getMockToursByCategory = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
+export const getMockTours = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
   if (category === 'all') {
     return getAllMockTours()
   }
@@ -52,9 +48,13 @@ export const getMockToursByCategory = async (category: TourCategory | 'all' = 'a
   return getAllMockTours().filter((item) => item.category === category)
 }
 
+export const getMockToursByCategory = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
+  return getMockTours(category)
+}
+
 export const searchMockTours = async (keyword: string, category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
   const normalizedKeyword = keyword.trim().toLowerCase()
-  const source = category === 'all' ? getAllMockTours() : await getMockToursByCategory(category)
+  const source = await getMockTours(category)
 
   if (!normalizedKeyword) {
     return source
