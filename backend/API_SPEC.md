@@ -24,6 +24,7 @@ Post create and update requests must include `location_type`.
 
 - Required bounds: `min_lat`, `max_lat`, `min_lng`, `max_lng`
 - Optional: `category` (default `all`), `limit` (default `10000`, maximum `10000`)
+- Restaurant records use `category=food` (`contenttypeid=39`). The same category is supported by `GET /api/locations`.
 - Only records with valid coordinates are returned. Each item contains its ID, name, address, latitude, longitude, and optional image URL.
 
 `GET /api/map/locations/{tour_content_id}/popular-posts?limit=3` returns posts linked to the selected tourist location, ordered by likes (then views). Each item contains title, view count, comment count, and like count. Comment count is currently `0` because comments are not implemented yet.

@@ -12,6 +12,7 @@ CATEGORY_TO_CONTENTTYPE_IDS: dict[str, list[str]] = {
     "leisure": ["28"],
     "accommodation": ["32"],
     "shopping": ["38"],
+    "food": ["39"],
 }
 
 ALL_CONTENTTYPE_IDS = {contenttype_id for ids in CATEGORY_TO_CONTENTTYPE_IDS.values() for contenttype_id in ids}

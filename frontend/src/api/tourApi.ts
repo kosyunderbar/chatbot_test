@@ -31,6 +31,7 @@ const CONTENTTYPE_ID_TO_CATEGORY: Record<string, TourCategory> = {
   '32': 'accommodation',
   '25': 'course',
   '15': 'festival',
+  '39': 'food',
 }
 
 const mapLocationToTourItem = (item: LocationApiItem): TourItem | null => {
