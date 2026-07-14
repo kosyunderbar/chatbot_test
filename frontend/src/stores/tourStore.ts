@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getMockToursByCategory, searchMockTours } from '../api/tourApi'
+import { getMockToursByCategory, searchMockTours } from '../repositories/tourRepository'
 import type { TourCategory, TourItem } from '../types/tour'
 
 export const useTourStore = defineStore('tour', () => {
