@@ -7,7 +7,7 @@ import {
   createMockPost,
   updateMockPost,
   deleteMockPost,
-} from '../api/boardApi'
+} from '../repositories/boardRepository'
 import type { BoardPost, PostCategory, PostFormData } from '../types/board'
 
 export const useBoardStore = defineStore('board', () => {

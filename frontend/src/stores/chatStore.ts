@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getInitialMockMessages, getMockSuggestions, sendMockChatMessage } from '../api/chatApi'
+import { getInitialMockMessages, getMockSuggestions, sendMockChatMessage } from '../repositories/chatRepository'
 import type { ChatMessage, ChatSuggestion } from '../types/chat'
 
 export const useChatStore = defineStore('chat', () => {
