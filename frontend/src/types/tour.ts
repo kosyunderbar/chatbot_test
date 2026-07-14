@@ -1,6 +1,6 @@
 /**
- * Tour feature types
- * Separates backend API DTOs from frontend UI types
+ * Tour feature types.
+ * API DTOs represent the raw payload shape, while UI types match the screen layer.
  */
 
 export type TourCategory =
@@ -13,8 +13,8 @@ export type TourCategory =
   | 'festival'
 
 /**
- * Backend API DTO for a single tour item
- * Uses snake_case to match backend naming convention
+ * API DTO for a single tour item.
+ * This keeps the transport contract separate from the UI contract.
  */
 export interface TourApiItem {
   contentid: string
@@ -22,17 +22,17 @@ export interface TourApiItem {
   title: string
   addr1: string
   addr2: string
-  tel: string
-  firstimage: string
-  firstimage2: string
-  mapx: string
-  mapy: string
-  zipcode: string
-  modifiedtime: string
+  tel?: string
+  firstimage?: string
+  firstimage2?: string
+  mapx?: string
+  mapy?: string
+  zipcode?: string
+  modifiedtime?: string
 }
 
 /**
- * Backend API response DTO for tour list
+ * API DTO for a tour list response.
  */
 export interface TourApiResponse {
   region: string
@@ -43,9 +43,7 @@ export interface TourApiResponse {
 }
 
 /**
- * Frontend UI type for displaying tour information
- * Uses camelCase naming for consistency with UI layer
- * Derived from TourApiItem during transformation
+ * UI model used by the Tour screen and components.
  */
 export interface TourItem {
   id: string

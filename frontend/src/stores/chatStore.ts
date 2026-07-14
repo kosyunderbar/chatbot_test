@@ -1,7 +1,8 @@
+import { isAxiosError } from 'axios'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getInitialMockMessages, getMockSuggestions, sendMockChatMessage } from '../repositories/chatRepository'
-import type { ChatMessage, ChatSuggestion } from '../types/chat'
+import { getInitialMessages, getSuggestions, sendMessage as sendChatRepositoryMessage } from '../repositories/chatRepository'
+import type { ChatMessage, ChatSuggestion, ChatHistoryItem } from '../types/chat'
 
 export const useChatStore = defineStore('chat', () => {
   const messages = ref<ChatMessage[]>([])
@@ -21,14 +22,14 @@ export const useChatStore = defineStore('chat', () => {
 
     try {
       const [initialMessages, initialSuggestions] = await Promise.all([
-        getInitialMockMessages(),
-        getMockSuggestions(),
+        getInitialMessages(),
+        getSuggestions(),
       ])
 
       messages.value = initialMessages
       suggestions.value = initialSuggestions
       hasInitialized.value = true
-    } catch (error) {
+    } catch {
       errorMessage.value = '챗봇을 불러오지 못했습니다.'
     } finally {
       isLoading.value = false
@@ -58,11 +59,30 @@ export const useChatStore = defineStore('chat', () => {
     isLoading.value = true
     errorMessage.value = ''
 
+    const history: ChatHistoryItem[] = messages.value
+      .filter((message) => message.id !== userMessage.id)
+      .map(({ role, content }) => ({ role, content }))
+
     try {
-      const response = await sendMockChatMessage(trimmedMessage)
+      const response = await sendChatRepositoryMessage({
+        message: trimmedMessage,
+        history,
+      })
       messages.value = [...messages.value, response.message]
-    } catch (error) {
-      errorMessage.value = '답변을 생성하지 못했습니다.'
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const status = error.response?.status
+
+        if (status === 422) {
+          errorMessage.value = '질문 내용을 확인해 주세요.'
+        } else if (status === 404 || status === 0 || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+          errorMessage.value = '챗봇 서버에 연결할 수 없습니다.'
+        } else {
+          errorMessage.value = '답변을 불러오는 중 오류가 발생했습니다.'
+        }
+      } else {
+        errorMessage.value = '답변을 불러오는 중 오류가 발생했습니다.'
+      }
     } finally {
       isLoading.value = false
     }

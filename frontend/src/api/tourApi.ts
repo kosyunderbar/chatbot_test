@@ -75,6 +75,7 @@ const fetchLocations = async ({
     .filter((item): item is TourItem => item !== null)
 }
 
+<<<<<<< HEAD
 export const getMockTours = async (): Promise<TourItem[]> => {
   return fetchLocations({ category: 'all' })
 }
@@ -84,8 +85,34 @@ export const getMockToursByCategory = async (
   limit?: number,
 ): Promise<TourItem[]> => {
   return fetchLocations({ category, limit })
+=======
+export const getMockTours = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
+  if (category === 'all') {
+    return getAllMockTours()
+  }
+
+  return getAllMockTours().filter((item) => item.category === category)
+>>>>>>> df91493eae76a6d3065ebbbb02faecea473d1453
+}
+
+export const getMockToursByCategory = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
+  return getMockTours(category)
 }
 
 export const searchMockTours = async (keyword: string, category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
+<<<<<<< HEAD
   return fetchLocations({ category, keyword })
+=======
+  const normalizedKeyword = keyword.trim().toLowerCase()
+  const source = await getMockTours(category)
+
+  if (!normalizedKeyword) {
+    return source
+  }
+
+  return source.filter((item) => {
+    const haystack = `${item.title} ${item.address}`.toLowerCase()
+    return haystack.includes(normalizedKeyword)
+  })
+>>>>>>> df91493eae76a6d3065ebbbb02faecea473d1453
 }

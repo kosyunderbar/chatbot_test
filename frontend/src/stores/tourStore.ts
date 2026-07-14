@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getMockToursByCategory, searchMockTours } from '../repositories/tourRepository'
+import { getMockTours, searchMockTours } from '../repositories/tourRepository'
 import type { TourCategory, TourItem } from '../types/tour'
 
 export const useTourStore = defineStore('tour', () => {
@@ -15,7 +15,7 @@ export const useTourStore = defineStore('tour', () => {
     errorMessage.value = ''
 
     try {
-      tours.value = await getMockToursByCategory(selectedCategory.value)
+      tours.value = await getMockTours(selectedCategory.value)
     } catch (error) {
       errorMessage.value = '관광 데이터를 불러오지 못했습니다.'
       tours.value = []
