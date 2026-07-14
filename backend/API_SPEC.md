@@ -4,6 +4,14 @@
 
 ## Active visitor presence
 
+## Map locations
+
+`GET /api/map/locations` returns lightweight tourism markers inside a map viewport.
+
+- Required bounds: `min_lat`, `max_lat`, `min_lng`, `max_lng`
+- Optional: `category` (default `all`), `limit` (default `10000`, maximum `10000`)
+- Only records with valid coordinates are returned. Each item contains its ID, name, address, latitude, longitude, and optional image URL.
+
 - `POST /api/presence/heartbeat`: records the current visitor as active. Requires an `X-Visitor-Id` header.
 - `GET /api/presence`: returns the number of visitors with a heartbeat in the past 60 seconds.
 

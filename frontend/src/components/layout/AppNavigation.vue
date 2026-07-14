@@ -7,6 +7,7 @@ const { t } = useI18n()
 
 const items = [
   { label: t('home'), to: '/' },
+  { label: t('map'), to: '/map' },
   { label: t('tour'), to: '/tour' },
   { label: t('community'), to: '/community' },
 ]

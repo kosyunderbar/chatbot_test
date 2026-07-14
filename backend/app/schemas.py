@@ -114,3 +114,17 @@ class LocationListResponse(BaseModel):
     total: int
     category: str
     keyword: str | None = None
+
+
+class MapLocationItem(BaseModel):
+    id: str
+    title: str
+    address: str
+    latitude: float
+    longitude: float
+    image_url: str | None = None
+
+
+class MapLocationListResponse(BaseModel):
+    items: list[MapLocationItem]
+    total: int

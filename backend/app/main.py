@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .deepl import DeepLTranslationError, translate_text
 from .database import Base, engine, get_db, run_migrations
-from .tour_data import list_locations
+from .tour_data import list_locations, list_map_locations
 
 Base.metadata.create_all(bind=engine)
 run_migrations()
@@ -311,3 +311,21 @@ def read_locations(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     return {"items": items, "total": total, "category": category, "keyword": keyword}
+
+
+@app.get("/api/map/locations", response_model=schemas.MapLocationListResponse)
+def read_map_locations(
+    min_lat: float = Query(..., ge=-90, le=90),
+    max_lat: float = Query(..., ge=-90, le=90),
+    min_lng: float = Query(..., ge=-180, le=180),
+    max_lng: float = Query(..., ge=-180, le=180),
+    category: str = Query(default="all"),
+    limit: int = Query(default=10000, ge=1, le=10000),
+):
+    if min_lat > max_lat or min_lng > max_lng:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid map bounds")
+    try:
+        items, total = list_map_locations(min_lat, max_lat, min_lng, max_lng, category, limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return {"items": items, "total": total}
