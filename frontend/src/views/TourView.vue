@@ -1,34 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { searchMockTours, getMockToursByCategory } from '../api/tourApi'
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import TourFilter from '../components/tour/TourFilter.vue'
 import TourGrid from '../components/tour/TourGrid.vue'
 import TourSearchBar from '../components/tour/TourSearchBar.vue'
-import type { TourCategory, TourItem } from '../types/tour'
+import { useTourStore } from '../stores/tourStore'
 
-const keyword = ref('')
-const selectedCategory = ref<TourCategory | 'all'>('all')
-const tours = ref<TourItem[]>([])
-const isLoading = ref(false)
-
-const loadTours = async () => {
-  isLoading.value = true
-  try {
-    tours.value = await getMockToursByCategory(selectedCategory.value)
-    if (keyword.value.trim()) {
-      tours.value = await searchMockTours(keyword.value, selectedCategory.value)
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
+const tourStore = useTourStore()
+const { keyword, selectedCategory, tours, isLoading, errorMessage } = storeToRefs(tourStore)
 
 const handleSearch = async () => {
-  await loadTours()
+  await tourStore.searchTours()
 }
 
 onMounted(async () => {
-  await loadTours()
+  await tourStore.fetchTours()
 })
 </script>
 
@@ -36,10 +22,13 @@ onMounted(async () => {
   <main class="bg-gray-50 py-8">
     <div class="space-y-6">
       <TourSearchBar v-model="keyword" @search="handleSearch" />
-      <TourFilter v-model="selectedCategory" />
+      <TourFilter :model-value="selectedCategory" @update:model-value="tourStore.changeCategory($event)" />
 
       <div v-if="isLoading" class="mx-auto max-w-7xl px-4 py-8 text-center text-sm text-gray-500">
         불러오는 중입니다...
+      </div>
+      <div v-else-if="errorMessage" class="mx-auto max-w-7xl px-4 py-8 text-center text-sm text-red-500">
+        {{ errorMessage }}
       </div>
       <TourGrid v-else :tours="tours" />
     </div>
