@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BaseButton from '../common/BaseButton.vue'
+import PostShareButtons from './PostShareButtons.vue'
 import type { BoardPost } from '../../types/board'
 
 interface Props {
@@ -53,6 +54,7 @@ const handleBack = () => emit('back')
         <p class="text-sm text-gray-500">본문</p>
         <div class="mt-3 whitespace-pre-wrap rounded-xl border border-gray-200 bg-gray-50 p-5 text-gray-800">{{ props.post.content }}</div>
       </div>
+      <PostShareButtons :title="props.post.title" :description="props.post.content" />
       <div v-if="props.post.tags && props.post.tags.length" class="space-y-2">
         <p class="text-sm text-gray-500">태그</p>
         <div class="flex flex-wrap gap-2">
