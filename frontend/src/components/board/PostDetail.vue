@@ -41,6 +41,11 @@ const handleBack = () => emit('back')
           <p class="mt-2 text-base text-gray-900">{{ props.post.category || '정보 없음' }}</p>
         </div>
       </div>
+      <div>
+        <p class="text-sm text-gray-500">관광지</p>
+        <p v-if="props.post.locationType === 'tour'" class="mt-2 text-base text-gray-900">{{ props.post.tourTitle }}<span class="ml-2 text-sm text-gray-500">{{ props.post.tourAddress }}</span></p>
+        <p v-else class="mt-2 text-base text-gray-500">지역 없음</p>
+      </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
           <p class="text-sm text-gray-500">작성일</p>

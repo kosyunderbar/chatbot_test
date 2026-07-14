@@ -2,6 +2,20 @@
 
 ## Post engagement, tags, and images
 
+### Required tourist-location selection
+
+Post create and update requests must include `location_type`.
+
+- `"tour"`: requires a valid `tour_content_id` from the tourism database. The server verifies it and stores the canonical tourist name and address.
+- `"none"`: explicitly marks the post as not related to a tourist location. Do not send `tour_content_id`.
+
+```json
+{
+  "location_type": "tour",
+  "tour_content_id": "126508"
+}
+```
+
 ## Active visitor presence
 
 ## Map locations
@@ -11,6 +25,10 @@
 - Required bounds: `min_lat`, `max_lat`, `min_lng`, `max_lng`
 - Optional: `category` (default `all`), `limit` (default `10000`, maximum `10000`)
 - Only records with valid coordinates are returned. Each item contains its ID, name, address, latitude, longitude, and optional image URL.
+
+`GET /api/map/locations/{tour_content_id}/popular-posts?limit=3` returns posts linked to the selected tourist location, ordered by likes (then views). Each item contains title, view count, comment count, and like count. Comment count is currently `0` because comments are not implemented yet.
+
+`GET /api/locations/{content_id}` returns a single tourist location for the tourism detail page.
 
 - `POST /api/presence/heartbeat`: records the current visitor as active. Requires an `X-Visitor-Id` header.
 - `GET /api/presence`: returns the number of visitors with a heartbeat in the past 60 seconds.

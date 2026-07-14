@@ -104,3 +104,10 @@ export const getTours = async (params: TourListQuery): Promise<TourListResult> =
     size,
   })
 }
+
+export const getTourById = async (contentId: string): Promise<TourItem> => {
+  const response = await httpClient.get<LocationApiItem>(`/api/locations/${contentId}`)
+  const item = mapLocationToTourItem(response.data)
+  if (!item) throw new Error('지원하지 않는 관광지 유형입니다.')
+  return item
+}

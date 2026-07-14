@@ -129,3 +129,32 @@ def list_map_locations(
         total = connection.execute(count_sql, parameters).fetchone()[0]
         rows = connection.execute(select_sql, [*parameters, limit]).fetchall()
     return [dict(row) for row in rows], int(total)
+
+
+def get_location_by_content_id(content_id: str) -> dict | None:
+    with _connect() as connection:
+        row = connection.execute(
+            """
+            SELECT contentid, COALESCE(title, '') AS title,
+                   TRIM(COALESCE(addr1, '') || ' ' || COALESCE(addr2, '')) AS address
+            FROM locations WHERE contentid = ?
+            """,
+            [content_id],
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def get_location_detail(content_id: str) -> dict | None:
+    with _connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, contentid, contenttypeid, content_type_name,
+                   COALESCE(title, '') AS title, COALESCE(addr1, '') AS addr1,
+                   COALESCE(addr2, '') AS addr2, COALESCE(tel, '') AS tel,
+                   mapx, mapy, COALESCE(firstimage, '') AS firstimage,
+                   COALESCE(firstimage2, '') AS firstimage2
+            FROM locations WHERE contentid = ?
+            """,
+            [content_id],
+        ).fetchone()
+    return dict(row) if row else None

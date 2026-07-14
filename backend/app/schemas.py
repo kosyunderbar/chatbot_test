@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class PostBase(BaseModel):
@@ -8,6 +10,16 @@ class PostBase(BaseModel):
     content: str = Field(..., min_length=1)
     region: str | None = None
     category: str | None = None
+    location_type: Literal["tour", "none"]
+    tour_content_id: str | None = Field(default=None, max_length=50)
+
+    @model_validator(mode="after")
+    def validate_location(self):
+        if self.location_type == "tour" and not self.tour_content_id:
+            raise ValueError("A tourist location must be selected")
+        if self.location_type == "none" and self.tour_content_id:
+            raise ValueError("tour_content_id is only allowed for tour locations")
+        return self
 
 
 class PostWriteBase(PostBase):
@@ -61,6 +73,8 @@ class PostRead(PostBase):
     is_liked: bool = False
     tags: list[TagRead] = Field(default_factory=list)
     images: list[PostImageRead] = Field(default_factory=list)
+    tour_title: str | None = None
+    tour_address: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -128,3 +142,15 @@ class MapLocationItem(BaseModel):
 class MapLocationListResponse(BaseModel):
     items: list[MapLocationItem]
     total: int
+
+
+class MapPopularPostItem(BaseModel):
+    id: int
+    title: str
+    view_count: int
+    comment_count: int
+    like_count: int
+
+
+class MapPopularPostResponse(BaseModel):
+    items: list[MapPopularPostItem]

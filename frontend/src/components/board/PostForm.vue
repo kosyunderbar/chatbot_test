@@ -2,39 +2,38 @@
 import { reactive, ref, watch } from 'vue'
 import BaseInput from '../common/BaseInput.vue'
 import BaseButton from '../common/BaseButton.vue'
+import { getTours } from '../../api/tourApi'
+import type { TourItem } from '../../types/tour'
 import type { PostFormData } from '../../types/board'
 import { getTagSuggestions } from '../../repositories/boardRepository'
 
 interface Props { initialData?: Partial<PostFormData>; submitLabel: string; loading?: boolean }
 const props = withDefaults(defineProps<Props>(), { initialData: undefined, loading: false })
 const emit = defineEmits<{ (e: 'submit', payload: PostFormData): void; (e: 'cancel'): void }>()
-const tagInput = ref('')
-const tagSuggestions = ref<string[]>([])
-const form = reactive<PostFormData>({ title: '', content: '', password: '', region: '', category: 'free', tags: [], existingImages: [], newImages: [] })
+const tagInput = ref(''); const tagSuggestions = ref<string[]>([])
+const placeKeyword = ref(''); const placeResults = ref<TourItem[]>([]); const placeLoading = ref(false); const locationError = ref('')
+const fieldErrors = reactive<{ title?: string; content?: string; password?: string }>({})
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+const form = reactive<PostFormData>({ title: '', content: '', password: '', region: '', category: 'free', locationType: '', tourContentId: '', tourTitle: '', tourAddress: '', tags: [], existingImages: [], newImages: [] })
 
-watch(() => props.initialData, (value) => {
-  const data = value ?? {}
-  form.title = data.title ?? ''; form.content = data.content ?? ''; form.region = data.region ?? ''; form.category = data.category ?? 'free'; form.password = ''
-  form.tags = data.tags ?? []; form.existingImages = data.existingImages ?? []; form.newImages = []
-}, { immediate: true, deep: true })
-
+watch(() => props.initialData, (value) => { const data = value ?? {}; form.title = data.title ?? ''; form.content = data.content ?? ''; form.region = data.region ?? ''; form.category = data.category ?? 'free'; form.password = ''; form.locationType = data.locationType ?? ''; form.tourContentId = data.tourContentId ?? ''; form.tourTitle = data.tourTitle ?? ''; form.tourAddress = data.tourAddress ?? ''; form.tags = data.tags ?? []; form.existingImages = data.existingImages ?? []; form.newImages = [] }, { immediate: true, deep: true })
 const addTag = () => { const tag = tagInput.value.trim().replace(/^#/, ''); if (tag && !form.tags.includes(tag) && form.tags.length < 10) form.tags.push(tag); tagInput.value = ''; tagSuggestions.value = [] }
-const loadTagSuggestions = async () => {
-  const keyword = tagInput.value.trim()
-  tagSuggestions.value = keyword ? (await getTagSuggestions(keyword)).map((tag) => tag.name) : []
-}
+const loadTagSuggestions = async () => { const keyword = tagInput.value.trim(); tagSuggestions.value = keyword ? (await getTagSuggestions(keyword)).map((tag) => tag.name) : [] }
+const loadPlaces = async (keyword = '') => { placeLoading.value = true; try { placeResults.value = (await getTours({ page: 1, size: 20, keyword: keyword || undefined })).items } finally { placeLoading.value = false } }
+const searchPlaces = () => { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(() => loadPlaces(placeKeyword.value.trim()), 300) }
+const selectPlace = (place: TourItem) => { form.locationType = 'tour'; form.tourContentId = place.id; form.tourTitle = place.title; form.tourAddress = place.address; placeResults.value = []; placeKeyword.value = '' }
+const changeLocationType = async () => { form.tourContentId = ''; form.tourTitle = ''; form.tourAddress = ''; placeKeyword.value = ''; placeResults.value = []; locationError.value = ''; if (form.locationType === 'tour') await loadPlaces() }
+const openPlaceList = async () => { if (form.locationType !== 'none' && !form.tourContentId && !placeResults.value.length) await loadPlaces() }
+const selectNoLocation = () => { form.locationType = 'none'; form.tourContentId = ''; form.tourTitle = ''; form.tourAddress = ''; placeResults.value = []; placeKeyword.value = ''; locationError.value = '' }
 const addImages = (event: Event) => { const files = Array.from((event.target as HTMLInputElement).files ?? []); form.newImages = [...form.newImages, ...files].slice(0, 5 - form.existingImages.length) }
-const submit = () => { if (form.title.trim() && form.content.trim() && form.password.trim()) emit('submit', { ...form, title: form.title.trim(), content: form.content.trim(), region: form.region.trim() }) }
+const submit = () => { fieldErrors.title = form.title.trim() ? undefined : '제목은 필수입니다.'; fieldErrors.content = form.content.trim() ? undefined : '내용은 필수입니다.'; fieldErrors.password = form.password.trim() ? undefined : '비밀번호는 필수입니다.'; locationError.value = ''; if (!form.locationType) { locationError.value = '관광지 또는 지역 없음을 선택해 주세요.'; return }; if (form.locationType === 'tour' && !form.tourContentId) { locationError.value = '검색 결과에서 관광지 하나를 선택해 주세요.'; return }; if (!fieldErrors.title && !fieldErrors.content && !fieldErrors.password) emit('submit', { ...form, title: form.title.trim(), content: form.content.trim(), region: form.region.trim() }) }
 </script>
 
-<template>
-  <div class="mx-auto max-w-3xl space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-    <BaseInput v-model="form.title" placeholder="제목" :disabled="loading" />
-    <textarea v-model="form.content" class="min-h-[220px] w-full rounded-xl border border-gray-300 p-3" placeholder="내용" :disabled="loading" />
-    <div class="grid gap-4 sm:grid-cols-2"><BaseInput v-model="form.region" placeholder="지역" :disabled="loading" /><select v-model="form.category" class="rounded-xl border border-gray-300 p-3"><option value="free">자유</option><option value="question">질문</option><option value="recommendation">추천</option></select></div>
-    <div><div class="flex gap-2"><BaseInput v-model="tagInput" placeholder="태그" @update:model-value="loadTagSuggestions" @keydown.enter.prevent="addTag" /><BaseButton type="button" variant="secondary" @click="addTag">태그 추가</BaseButton></div><div v-if="tagSuggestions.length" class="mt-1 flex flex-wrap gap-1"><button v-for="tag in tagSuggestions" :key="tag" type="button" class="rounded bg-gray-100 px-2 py-1 text-xs" @click="tagInput = tag; addTag()">#{{ tag }}</button></div><div class="mt-2 flex flex-wrap gap-2"><button v-for="tag in form.tags" :key="tag" type="button" class="rounded-full bg-sky-50 px-2 py-1 text-sm" @click="form.tags = form.tags.filter((item) => item !== tag)">#{{ tag }} ×</button></div></div>
-    <div><label class="block text-sm">이미지 (JPEG/PNG/WebP, 최대 5장)</label><input type="file" accept="image/jpeg,image/png,image/webp" multiple :disabled="loading" @change="addImages" /><div class="mt-2 flex flex-wrap gap-2"><button v-for="image in form.existingImages" :key="image.id" type="button" @click="form.existingImages = form.existingImages.filter((item) => item.id !== image.id)"><img :src="image.url" :alt="image.original_name" class="h-16 w-16 rounded object-cover" /></button><span v-for="file in form.newImages" :key="file.name" class="rounded bg-gray-100 px-2 py-1 text-xs">{{ file.name }}</span></div></div>
-    <BaseInput v-model="form.password" type="password" placeholder="비밀번호" :disabled="loading" />
-    <div class="flex justify-end gap-3"><BaseButton variant="secondary" @click="emit('cancel')">취소</BaseButton><BaseButton :disabled="loading" @click="submit">{{ submitLabel }}</BaseButton></div>
-  </div>
-</template>
+<template><div class="mx-auto max-w-3xl space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+  <div><label class="mb-1 block text-sm font-medium">제목 <span class="text-red-500">*</span></label><BaseInput v-model="form.title" placeholder="제목" :disabled="loading" /><p v-if="fieldErrors.title" class="mt-1 text-sm text-red-500">{{ fieldErrors.title }}</p></div><div><label class="mb-1 block text-sm font-medium">내용 <span class="text-red-500">*</span></label><textarea v-model="form.content" class="min-h-[220px] w-full rounded-xl border border-gray-300 p-3" placeholder="내용" :disabled="loading" /><p v-if="fieldErrors.content" class="mt-1 text-sm text-red-500">{{ fieldErrors.content }}</p></div>
+  <div class="grid gap-4 sm:grid-cols-2"><div><label class="mb-1 block text-sm font-medium">관광지 <span class="text-red-500">*</span></label><div class="rounded-xl border border-sky-200 bg-sky-50 p-3"><template v-if="form.locationType === 'none'"><p class="text-sm font-medium">지역 없음</p><button type="button" class="mt-1 text-sm text-sky-600" @click="form.locationType = ''; openPlaceList()">관광지 선택하기</button></template><template v-else-if="form.tourContentId"><p class="text-sm font-medium">{{ form.tourTitle }}</p><p class="text-xs text-gray-600">{{ form.tourAddress }}</p><button type="button" class="mt-1 text-sm text-sky-600" @click="changeLocationType">다시 선택</button></template><template v-else><BaseInput v-model="placeKeyword" placeholder="관광지 이름 또는 주소 검색" @focus="openPlaceList" @update:model-value="searchPlaces" /><button type="button" class="mt-2 text-sm text-gray-600" @click="selectNoLocation">지역 없음으로 작성</button><p v-if="placeLoading" class="mt-2 text-sm text-gray-500">관광지를 불러오는 중...</p><div class="mt-2 max-h-52 space-y-1 overflow-y-auto"><button v-for="place in placeResults" :key="place.id" type="button" class="block w-full rounded-lg bg-white p-2 text-left text-sm hover:bg-sky-100" @click="selectPlace(place)"><strong>{{ place.title }}</strong><span class="mt-1 block text-xs text-gray-500">{{ place.address || '주소 정보 없음' }}</span></button></div></template></div><p v-if="locationError" class="mt-1 text-sm text-red-500">{{ locationError }}</p></div><div><label class="mb-1 block text-sm font-medium">카테고리</label><select v-model="form.category" class="w-full rounded-xl border border-gray-300 p-3"><option value="free">자유</option><option value="question">질문</option><option value="recommendation">추천</option></select></div></div>
+  <p v-if="locationError" class="text-sm text-red-500">{{ locationError }}</p>
+  <div><div class="flex gap-2"><BaseInput v-model="tagInput" placeholder="태그" @update:model-value="loadTagSuggestions" @keydown.enter.prevent="addTag" /><BaseButton type="button" variant="secondary" @click="addTag">태그 추가</BaseButton></div><div v-if="tagSuggestions.length" class="mt-1 flex flex-wrap gap-1"><button v-for="tag in tagSuggestions" :key="tag" type="button" class="rounded bg-gray-100 px-2 py-1 text-xs" @click="tagInput = tag; addTag()">#{{ tag }}</button></div><div class="mt-2 flex flex-wrap gap-2"><button v-for="tag in form.tags" :key="tag" type="button" class="rounded-full bg-sky-50 px-2 py-1 text-sm" @click="form.tags = form.tags.filter((item) => item !== tag)">#{{ tag }} ×</button></div></div>
+  <div><label class="block text-sm">이미지 (최대 5장)</label><input type="file" accept="image/jpeg,image/png,image/webp" multiple :disabled="loading" @change="addImages" /><div class="mt-2 flex flex-wrap gap-2"><button v-for="image in form.existingImages" :key="image.id" type="button" @click="form.existingImages = form.existingImages.filter((item) => item.id !== image.id)"><img :src="image.url" :alt="image.original_name" class="h-16 w-16 rounded object-cover" /></button><span v-for="file in form.newImages" :key="file.name" class="rounded bg-gray-100 px-2 py-1 text-xs">{{ file.name }}</span></div></div>
+  <div><label class="mb-1 block text-sm font-medium">비밀번호 <span class="text-red-500">*</span></label><BaseInput v-model="form.password" type="password" placeholder="비밀번호" :disabled="loading" /><p v-if="fieldErrors.password" class="mt-1 text-sm text-red-500">{{ fieldErrors.password }}</p></div><div class="flex justify-end gap-3"><BaseButton variant="secondary" @click="emit('cancel')">취소</BaseButton><BaseButton :disabled="loading" @click="submit">{{ submitLabel }}</BaseButton></div>
+</div></template>

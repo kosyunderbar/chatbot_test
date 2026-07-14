@@ -23,7 +23,7 @@ export const deleteTemporaryImage = deleteUploadedImage
 export const createBoardPost = async (form: PostFormData): Promise<BoardPost> => {
   const uploaded = await uploadImages(form.newImages)
   try {
-    return await createPost({ title: form.title, content: form.content, password: form.password, region: form.region || undefined, category: form.category || undefined, tags: form.tags, image_ids: uploaded.map((image) => image.id) })
+    return await createPost({ title: form.title, content: form.content, password: form.password, region: form.region || undefined, category: form.category || undefined, location_type: form.locationType as 'tour' | 'none', tour_content_id: form.locationType === 'tour' ? form.tourContentId : undefined, tags: form.tags, image_ids: uploaded.map((image) => image.id) })
   } catch (error) {
     await Promise.allSettled(uploaded.map((image) => deleteUploadedImage(image.id)))
     throw error
@@ -33,7 +33,7 @@ export const createBoardPost = async (form: PostFormData): Promise<BoardPost> =>
 export const updateBoardPost = async (id: number, form: PostFormData): Promise<BoardPost> => {
   const uploaded = await uploadImages(form.newImages)
   try {
-    return await updatePost(id, { title: form.title, content: form.content, password: form.password, region: form.region || undefined, category: form.category || undefined, tags: form.tags, image_ids: [...form.existingImages.map((image) => image.id), ...uploaded.map((image) => image.id)] })
+    return await updatePost(id, { title: form.title, content: form.content, password: form.password, region: form.region || undefined, category: form.category || undefined, location_type: form.locationType as 'tour' | 'none', tour_content_id: form.locationType === 'tour' ? form.tourContentId : undefined, tags: form.tags, image_ids: [...form.existingImages.map((image) => image.id), ...uploaded.map((image) => image.id)] })
   } catch (error) {
     await Promise.allSettled(uploaded.map((image) => deleteUploadedImage(image.id)))
     throw error

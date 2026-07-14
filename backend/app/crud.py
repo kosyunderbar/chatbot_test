@@ -2,6 +2,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
 
 from . import models, schemas
+from .tour_data import get_location_by_content_id
 
 
 def get_post(db: Session, post_id: int):
@@ -102,6 +103,20 @@ def _set_images(db: Session, post: models.Post, image_ids: list[int], visitor_id
     return [image.storage_name for image in existing_images if image.id not in image_ids]
 
 
+def _set_location(post: models.Post, post_in: schemas.PostBase):
+    post.location_type = post_in.location_type
+    post.tour_content_id = None
+    post.tour_title = None
+    post.tour_address = None
+    if post_in.location_type == "tour":
+        location = get_location_by_content_id(post_in.tour_content_id or "")
+        if location is None:
+            raise ValueError("Selected tourist location does not exist")
+        post.tour_content_id = location["contentid"]
+        post.tour_title = location["title"]
+        post.tour_address = location["address"]
+
+
 def create_post(db: Session, post_in: schemas.PostCreate, visitor_id: str | None = None):
     post = models.Post(
         title=post_in.title,
@@ -110,6 +125,7 @@ def create_post(db: Session, post_in: schemas.PostCreate, visitor_id: str | None
         region=post_in.region,
         category=post_in.category,
     )
+    _set_location(post, post_in)
     db.add(post)
     _set_tags(db, post, post_in.tags)
     _set_images(db, post, post_in.image_ids, visitor_id)
@@ -127,6 +143,7 @@ def update_post(
     post.content = post_in.content
     post.region = post_in.region
     post.category = post_in.category
+    _set_location(post, post_in)
     removed_storage_names = []
     if post_in.tags is not None:
         _set_tags(db, post, post_in.tags)
@@ -179,3 +196,13 @@ def list_tags(db: Session, keyword: str | None = None, limit: int = 20):
     if keyword:
         query = query.filter(models.Tag.name.like(f"%{keyword.strip().lower()}%"))
     return query.order_by(models.Tag.name.asc()).limit(limit).all()
+
+
+def list_popular_posts_for_tour(db: Session, tour_content_id: str, limit: int = 3):
+    return (
+        db.query(models.Post)
+        .filter(models.Post.location_type == "tour", models.Post.tour_content_id == tour_content_id)
+        .order_by(models.Post.like_count.desc(), models.Post.view_count.desc(), models.Post.id.desc())
+        .limit(limit)
+        .all()
+    )

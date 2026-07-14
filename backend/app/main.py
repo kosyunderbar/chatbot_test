@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .deepl import DeepLTranslationError, translate_text
 from .database import Base, engine, get_db, run_migrations
-from .tour_data import list_locations, list_map_locations
+from .tour_data import get_location_detail, list_locations, list_map_locations
 
 Base.metadata.create_all(bind=engine)
 run_migrations()
@@ -48,6 +48,10 @@ def _post_response(post, db: Session, visitor_id: str | None) -> dict:
         "content": post.content,
         "region": post.region,
         "category": post.category,
+        "location_type": post.location_type,
+        "tour_content_id": post.tour_content_id,
+        "tour_title": post.tour_title,
+        "tour_address": post.tour_address,
         "view_count": post.view_count,
         "like_count": post.like_count,
         "is_liked": crud.is_liked_by(db, post.id, visitor_id),
@@ -313,6 +317,14 @@ def read_locations(
     return {"items": items, "total": total, "category": category, "keyword": keyword}
 
 
+@app.get("/api/locations/{content_id}", response_model=schemas.LocationItem)
+def read_location_detail(content_id: str):
+    location = get_location_detail(content_id)
+    if location is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Location not found")
+    return location
+
+
 @app.get("/api/map/locations", response_model=schemas.MapLocationListResponse)
 def read_map_locations(
     min_lat: float = Query(..., ge=-90, le=90),
@@ -329,3 +341,24 @@ def read_map_locations(
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return {"items": items, "total": total}
+
+
+@app.get("/api/map/locations/{tour_content_id}/popular-posts", response_model=schemas.MapPopularPostResponse)
+def read_popular_posts_for_map_location(
+    tour_content_id: str,
+    limit: int = Query(default=3, ge=1, le=10),
+    db: Session = Depends(get_db),
+):
+    posts = crud.list_popular_posts_for_tour(db, tour_content_id, limit)
+    return {
+        "items": [
+            {
+                "id": post.id,
+                "title": post.title,
+                "view_count": post.view_count,
+                "comment_count": 0,
+                "like_count": post.like_count,
+            }
+            for post in posts
+        ]
+    }

@@ -32,6 +32,7 @@ const categoryMap: Record<string, string> = {
             <span>댓글 {{ props.post.commentCount ?? 0 }}</span>
             <span v-if="props.post.likeCount !== undefined">좋아요 {{ props.post.likeCount }}</span>
           </div>
+          <p v-if="props.post.locationType === 'tour'" class="mt-2 text-sm text-sky-700">{{ props.post.tourTitle }} · {{ props.post.tourAddress }}</p>
           <div v-if="props.post.tags && props.post.tags.length" class="mt-2 flex flex-wrap gap-2">
             <span v-for="tag in props.post.tags" :key="tag" class="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600">#{{ tag }}</span>
           </div>

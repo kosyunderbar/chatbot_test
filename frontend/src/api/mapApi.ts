@@ -1,5 +1,5 @@
 import httpClient from './httpClient'
-import type { MapLocationResponse } from '../types/map'
+import type { MapLocationResponse, MapPopularPost } from '../types/map'
 
 export const getMapLocations = (params: {
   minLat: number
@@ -19,3 +19,6 @@ export const getMapLocations = (params: {
     },
     signal: params.signal,
   })
+
+export const getMapPopularPosts = (tourContentId: string) =>
+  httpClient.get<{ items: MapPopularPost[] }>(`/api/map/locations/${tourContentId}/popular-posts`)

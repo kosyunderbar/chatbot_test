@@ -42,7 +42,7 @@ const handleCancel = () => {
         </div>
         <div v-else-if="selectedPost">
           <PostForm
-            :initialData="{ title: selectedPost.title, content: selectedPost.content, region: selectedPost.region, category: selectedPost.category, tags: selectedPost.tags, existingImages: selectedPost.images }"
+            :initialData="{ title: selectedPost.title, content: selectedPost.content, region: selectedPost.region, category: selectedPost.category, locationType: selectedPost.locationType, tourContentId: selectedPost.tourContentId ?? '', tourTitle: selectedPost.tourTitle ?? '', tourAddress: selectedPost.tourAddress ?? '', tags: selectedPost.tags, existingImages: selectedPost.images }"
             submitLabel="수정하기"
             :loading="isSubmitting"
             @submit="handleSubmit"

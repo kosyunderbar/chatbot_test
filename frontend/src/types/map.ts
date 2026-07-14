@@ -11,3 +11,11 @@ export interface MapLocationResponse {
   items: MapLocation[]
   total: number
 }
+
+export interface MapPopularPost {
+  id: number
+  title: string
+  view_count: number
+  comment_count: number
+  like_count: number
+}

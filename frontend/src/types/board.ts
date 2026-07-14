@@ -14,6 +14,10 @@ export interface PostApiItem {
   content: string
   region: string | null
   category: string | null
+  location_type: 'tour' | 'none'
+  tour_content_id: string | null
+  tour_title: string | null
+  tour_address: string | null
   view_count?: number
   like_count?: number
   is_liked?: boolean
@@ -56,6 +60,8 @@ export interface PostCreateRequest {
   password: string
   region?: string
   category?: string
+  location_type: 'tour' | 'none'
+  tour_content_id?: string
   tags?: string[]
   image_ids?: number[]
 }
@@ -69,6 +75,8 @@ export interface PostUpdateRequest {
   password: string
   region?: string
   category?: string
+  location_type: 'tour' | 'none'
+  tour_content_id?: string
   tags?: string[]
   image_ids?: number[]
 }
@@ -86,6 +94,10 @@ export interface PostFormData {
   password: string
   region: string
   category: string
+  locationType: '' | 'tour' | 'none'
+  tourContentId: string
+  tourTitle: string
+  tourAddress: string
   tags: string[]
   existingImages: PostImageApiItem[]
   newImages: File[]
@@ -101,6 +113,10 @@ export interface BoardPost {
   content: string
   region: string
   category: string
+  locationType: 'tour' | 'none'
+  tourContentId: string | null
+  tourTitle: string | null
+  tourAddress: string | null
   createdAt: string
   updatedAt: string
   author?: string
