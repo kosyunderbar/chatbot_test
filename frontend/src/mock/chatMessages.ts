@@ -10,8 +10,8 @@ export const initialMessages: ChatMessage[] = [
 ]
 
 export const suggestions: ChatSuggestion[] = [
-  { id: 'suggestion-1', text: '서울 야경 명소 추천해줘' },
-  { id: 'suggestion-2', text: '비 오는 날 갈 만한 곳은?' },
-  { id: 'suggestion-3', text: '홍대 근처 볼거리를 알려줘' },
-  { id: 'suggestion-4', text: '가족과 가기 좋은 관광지는?' },
+  { id: 'suggestion-1', text: '홍대 근처 맛집 알려줘' },
+  { id: 'suggestion-2', text: '지금 하고 있는 축제 알려줘' },
+  { id: 'suggestion-3', text: '경복궁 근처 맛집 추천해줘' },
+  { id: 'suggestion-4', text: '성동구 데이트 코스 추천해줘' },
 ]
