@@ -37,6 +37,18 @@ export interface PostDeleteRequest {
   password: string
 }
 
+export interface PostFormData {
+  title: string
+  content: string
+  password: string
+  region: string
+  category: string
+}
+
+export interface PostDeletePayload {
+  password: string
+}
+
 export interface BoardPost {
   id: number
   title: string

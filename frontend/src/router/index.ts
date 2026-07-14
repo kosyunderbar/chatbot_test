@@ -19,6 +19,21 @@ const router = createRouter({
       component: () => import('../views/CommunityView.vue'),
     },
     {
+      path: '/community/write',
+      name: 'post-write',
+      component: () => import('../views/PostWriteView.vue'),
+    },
+    {
+      path: '/community/:id/edit',
+      name: 'post-edit',
+      component: () => import('../views/PostEditView.vue'),
+    },
+    {
+      path: '/community/:id',
+      name: 'post-detail',
+      component: () => import('../views/PostDetailView.vue'),
+    },
+    {
       path: '/chatbot',
       name: 'chatbot',
       component: () => import('../views/ChatbotView.vue'),

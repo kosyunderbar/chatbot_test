@@ -9,7 +9,9 @@ import BaseButton from '../common/BaseButton.vue'
         <h1 class="text-2xl font-semibold text-gray-900">커뮤니티</h1>
         <p class="mt-1 text-sm text-gray-600">지역 정보와 경험을 나누는 공간입니다.</p>
       </div>
-      <BaseButton>글 작성하기</BaseButton>
+      <router-link to="/community/write">
+        <BaseButton>글 작성하기</BaseButton>
+      </router-link>
     </div>
   </section>
 </template>

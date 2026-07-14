@@ -1,5 +1,12 @@
 import { posts as mockPosts } from '../mock/posts'
-import type { BoardPost, PostApiItem, PostCategory } from '../types/board'
+import type {
+  BoardPost,
+  PostApiItem,
+  PostCategory,
+  PostCreateRequest,
+  PostUpdateRequest,
+  PostDeleteRequest,
+} from '../types/board'
 
 const postMetadata: Record<number, { author: string; viewCount: number; commentCount: number }> = {
   1: { author: '민지', viewCount: 128, commentCount: 5 },
@@ -15,6 +22,24 @@ const postMetadata: Record<number, { author: string; viewCount: number; commentC
   11: { author: '은우', viewCount: 132, commentCount: 7 },
   12: { author: '나연', viewCount: 59, commentCount: 1 },
 }
+
+const postPasswordMap = new Map<number, string>([
+  [1, 'pass1'],
+  [2, 'pass2'],
+  [3, 'pass3'],
+  [4, 'pass4'],
+  [5, 'pass5'],
+  [6, 'pass6'],
+  [7, 'pass7'],
+  [8, 'pass8'],
+  [9, 'pass9'],
+  [10, 'pass10'],
+  [11, 'pass11'],
+  [12, 'pass12'],
+])
+
+let mutablePosts: PostApiItem[] = [...mockPosts]
+let nextPostId = Math.max(...mutablePosts.map((item) => item.id), 0) + 1
 
 export const mapPostApiItemToBoardPost = (item: PostApiItem): BoardPost => {
   return {
@@ -34,7 +59,7 @@ const sortByNewest = (items: BoardPost[]): BoardPost[] => {
 }
 
 export const getMockPosts = async (): Promise<BoardPost[]> => {
-  return sortByNewest(mockPosts.map(mapPostApiItemToBoardPost))
+  return sortByNewest(mutablePosts.map(mapPostApiItemToBoardPost))
 }
 
 export const searchMockPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
@@ -56,6 +81,66 @@ export const searchMockPosts = async (keyword: string, category: PostCategory = 
 }
 
 export const getMockPostById = async (id: number): Promise<BoardPost | null> => {
-  const item = mockPosts.find((postItem) => postItem.id === id)
+  const item = mutablePosts.find((postItem) => postItem.id === id)
   return item ? mapPostApiItemToBoardPost(item) : null
+}
+
+export const createMockPost = async (payload: PostCreateRequest): Promise<BoardPost> => {
+  const createdAt = new Date().toISOString().slice(0, 10)
+  const newPost: PostApiItem = {
+    id: nextPostId,
+    title: payload.title,
+    content: payload.content,
+    region: payload.region ?? null,
+    category: payload.category ?? null,
+    created_at: createdAt,
+    updated_at: createdAt,
+  }
+
+  mutablePosts = [newPost, ...mutablePosts]
+  postPasswordMap.set(newPost.id, payload.password)
+  nextPostId += 1
+
+  return mapPostApiItemToBoardPost(newPost)
+}
+
+export const updateMockPost = async (id: number, payload: PostUpdateRequest): Promise<BoardPost> => {
+  const postIndex = mutablePosts.findIndex((item) => item.id === id)
+  if (postIndex < 0) {
+    throw new Error('게시글을 찾을 수 없습니다.')
+  }
+
+  const savedPassword = postPasswordMap.get(id)
+  if (savedPassword !== payload.password) {
+    throw new Error('비밀번호가 일치하지 않습니다.')
+  }
+
+  const updatedAt = new Date().toISOString().slice(0, 10)
+  const currentPost = mutablePosts[postIndex]
+  const updatedPost: PostApiItem = {
+    ...currentPost,
+    title: payload.title,
+    content: payload.content,
+    region: payload.region ?? null,
+    category: payload.category ?? null,
+    updated_at: updatedAt,
+  }
+
+  mutablePosts = [...mutablePosts.slice(0, postIndex), updatedPost, ...mutablePosts.slice(postIndex + 1)]
+  return mapPostApiItemToBoardPost(updatedPost)
+}
+
+export const deleteMockPost = async (id: number, payload: PostDeleteRequest): Promise<void> => {
+  const postIndex = mutablePosts.findIndex((item) => item.id === id)
+  if (postIndex < 0) {
+    throw new Error('게시글을 찾을 수 없습니다.')
+  }
+
+  const savedPassword = postPasswordMap.get(id)
+  if (savedPassword !== payload.password) {
+    throw new Error('비밀번호가 일치하지 않습니다.')
+  }
+
+  mutablePosts = [...mutablePosts.slice(0, postIndex), ...mutablePosts.slice(postIndex + 1)]
+  postPasswordMap.delete(id)
 }

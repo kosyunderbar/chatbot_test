@@ -8,28 +8,31 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const categoryMap: Record<BoardPost['category'], string> = {
+const categoryMap: Record<string, string> = {
   free: '자유',
   question: '질문',
   recommendation: '추천',
+  food: 'food',
 }
 </script>
 
 <template>
-  <BaseCard>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700">{{ categoryMap[props.post.category] }}</span>
-          <h2 class="text-base font-semibold text-gray-900">{{ props.post.title }}</h2>
-        </div>
-        <div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-500">
-          <span>작성자 {{ props.post.author }}</span>
-          <span>{{ props.post.createdAt }}</span>
-          <span>조회 {{ props.post.viewCount }}</span>
-          <span>댓글 {{ props.post.commentCount }}</span>
+  <router-link :to="{ name: 'post-detail', params: { id: String(props.post.id) } }">
+    <BaseCard>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700">{{ categoryMap[props.post.category] ?? props.post.category }}</span>
+            <h2 class="text-base font-semibold text-gray-900">{{ props.post.title }}</h2>
+          </div>
+          <div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-500">
+            <span>작성자 {{ props.post.author ?? '-' }}</span>
+            <span>{{ props.post.createdAt }}</span>
+            <span>조회 {{ props.post.viewCount ?? 0 }}</span>
+            <span>댓글 {{ props.post.commentCount ?? 0 }}</span>
+          </div>
         </div>
       </div>
-    </div>
-  </BaseCard>
+    </BaseCard>
+  </router-link>
 </template>
