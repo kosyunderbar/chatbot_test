@@ -1,3 +1,8 @@
+/**
+ * Tour feature types
+ * Separates backend API DTOs from frontend UI types
+ */
+
 export type TourCategory =
   | 'attraction'
   | 'leisure'
@@ -7,6 +12,10 @@ export type TourCategory =
   | 'course'
   | 'festival'
 
+/**
+ * Backend API DTO for a single tour item
+ * Uses snake_case to match backend naming convention
+ */
 export interface TourApiItem {
   contentid: string
   contenttypeid: string
@@ -22,6 +31,9 @@ export interface TourApiItem {
   modifiedtime: string
 }
 
+/**
+ * Backend API response DTO for tour list
+ */
 export interface TourApiResponse {
   region: string
   contentType: string
@@ -30,6 +42,11 @@ export interface TourApiResponse {
   items: TourApiItem[]
 }
 
+/**
+ * Frontend UI type for displaying tour information
+ * Uses camelCase naming for consistency with UI layer
+ * Derived from TourApiItem during transformation
+ */
 export interface TourItem {
   id: string
   title: string
