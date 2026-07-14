@@ -35,3 +35,15 @@ class PostListResponse(BaseModel):
     total: int
     page: int
     size: int
+
+
+class TranslateRequest(BaseModel):
+    text: str = Field(..., min_length=1)
+    target_lang: str = Field(default="KO", min_length=2, max_length=5)
+
+
+class TranslateResponse(BaseModel):
+    source_text: str
+    translated_text: str
+    target_lang: str
+    detected_source_lang: str | None = None

@@ -6,8 +6,8 @@ Windows 기준으로 아래 순서로 실행하면 됩니다.
 
 ```bash
 cd backend
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv localhub_env
+source localhub_env/Scripts/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```

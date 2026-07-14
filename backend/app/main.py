@@ -2,7 +2,8 @@ from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from . import crud, models, schemas
+from . import crud, schemas
+from .deepl import DeepLTranslationError, translate_text
 from .database import Base, engine, get_db
 
 Base.metadata.create_all(bind=engine)
@@ -75,3 +76,14 @@ def remove_post(post_id: int, delete_in: schemas.PostDeleteRequest, db: Session 
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
     crud.delete_post(db, post)
     return {"message": "Post deleted"}
+
+
+@app.post("/api/translate", response_model=schemas.TranslateResponse)
+def translate(request: schemas.TranslateRequest):
+    try:
+        return translate_text(
+            text=request.text,
+            target_lang=request.target_lang,
+        )
+    except DeepLTranslationError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
