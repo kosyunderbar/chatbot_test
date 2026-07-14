@@ -9,9 +9,9 @@
         class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-sky-500"
       >
         <option value="all">전체</option>
-        <option value="history">역사</option>
-        <option value="nature">자연</option>
-        <option value="shopping">쇼핑</option>
+        <option value="history">관광지</option>
+        <option value="nature">맛집</option>
+        <option value="shopping">문화</option>
       </select>
     </div>
   </section>
