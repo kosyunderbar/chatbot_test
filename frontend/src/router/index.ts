@@ -18,6 +18,11 @@ const router = createRouter({
       name: 'community',
       component: () => import('../views/CommunityView.vue'),
     },
+    {
+      path: '/chatbot',
+      name: 'chatbot',
+      component: () => import('../views/ChatbotView.vue'),
+    },
   ],
 })
 
