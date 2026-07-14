@@ -13,6 +13,11 @@ const router = createRouter({
       name: 'tour',
       component: () => import('../views/TourView.vue'),
     },
+    {
+      path: '/community',
+      name: 'community',
+      component: () => import('../views/CommunityView.vue'),
+    },
   ],
 })
 
