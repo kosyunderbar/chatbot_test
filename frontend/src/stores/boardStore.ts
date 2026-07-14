@@ -71,9 +71,10 @@ export const useBoardStore = defineStore('board', () => {
     errorMessage.value = ''
 
     try {
-      posts.value = await searchMockPosts(keyword.value, selectedCategory.value)
+      const trimmedKeyword = keyword.value.trim()
+      posts.value = await searchMockPosts(trimmedKeyword, selectedCategory.value)
     } catch (error) {
-      errorMessage.value = getErrorMessage(error)
+      errorMessage.value = '게시글을 검색하는 중 오류가 발생했습니다.'
       posts.value = []
     } finally {
       isLoading.value = false

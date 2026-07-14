@@ -14,6 +14,17 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'search'): void
 }>()
+
+const handleSearch = () => {
+  emit('search')
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    emit('search')
+  }
+}
 </script>
 
 <template>
@@ -24,8 +35,9 @@ const emit = defineEmits<{
         placeholder="게시글 검색"
         class="flex-1"
         @update:model-value="emit('update:modelValue', $event)"
+        @keydown="handleKeydown"
       />
-      <BaseButton type="button" @click="emit('search')">검색</BaseButton>
+      <BaseButton type="button" @click="handleSearch">검색</BaseButton>
     </div>
   </section>
 </template>

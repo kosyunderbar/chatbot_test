@@ -80,4 +80,8 @@ export interface BoardPost {
   author?: string
   viewCount?: number
   commentCount?: number
+  likeCount?: number
+  isLiked?: boolean
+  tags?: string[]
+  imageUrls?: string[]
 }

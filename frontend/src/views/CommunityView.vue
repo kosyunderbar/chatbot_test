@@ -10,6 +10,10 @@ import { useBoardStore } from '../stores/boardStore'
 const boardStore = useBoardStore()
 const { keyword, selectedCategory, posts, isLoading, errorMessage } = storeToRefs(boardStore)
 
+const handleSearch = async () => {
+  await boardStore.searchPosts()
+}
+
 onMounted(async () => {
   await boardStore.fetchPosts()
 })
@@ -19,7 +23,7 @@ onMounted(async () => {
   <main class="bg-gray-50 py-8">
     <div class="space-y-6">
       <BoardHeader />
-      <BoardSearchBar v-model="keyword" @search="boardStore.searchPosts" />
+      <BoardSearchBar v-model="keyword" @search="handleSearch" />
       <BoardCategoryFilter :model-value="selectedCategory" @update:model-value="boardStore.changeCategory($event)" />
       <PostList :posts="posts" :is-loading="isLoading" :error-message="errorMessage" />
     </div>

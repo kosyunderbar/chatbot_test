@@ -48,27 +48,11 @@ const normalizePostList = (items: PostApiItem[]): BoardPost[] => {
 }
 
 export const getMockPosts = async (): Promise<BoardPost[]> => {
-  const response = await httpClient.get<{ items: PostApiItem[] }>('/api/posts', {
-    params: {
-      page: 1,
-      size: DEFAULT_PAGE_SIZE,
-    },
-  })
-
-  return normalizePostList(response.data.items)
+  return getPosts()
 }
 
 export const searchMockPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
-  const response = await httpClient.get<{ items: PostApiItem[] }>('/api/posts', {
-    params: {
-      page: 1,
-      size: DEFAULT_PAGE_SIZE,
-      keyword: keyword.trim() || undefined,
-      category: category === 'all' ? undefined : category,
-    },
-  })
-
-  return normalizePostList(response.data.items)
+  return searchPosts(keyword, category)
 }
 
 export const getMockPostById = async (id: number): Promise<BoardPost | null> => {
