@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -7,13 +7,13 @@ const isOpen = ref(false)
 const route = useRoute()
 const { t } = useI18n()
 
-const items = [
-  { label: t('home'), to: '/' },
-  { label: t('map'), to: '/map' },
-  { label: t('tour'), to: '/tour' },
-  { label: t('community'), to: '/community' },
-  { label: t('chatbot'), to: '/chatbot' },
-]
+const items = computed(() => [
+  { label: t('nav.home'), to: '/' },
+  { label: t('nav.map'), to: '/map' },
+  { label: t('nav.tour'), to: '/tour' },
+  { label: t('nav.community'), to: '/community' },
+  { label: t('nav.chatbot'), to: '/chatbot' },
+])
 
 const closeMenu = () => {
   isOpen.value = false

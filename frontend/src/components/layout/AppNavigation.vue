@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const { t } = useI18n()
 
-const items = [
-  { label: t('home'), to: '/' },
-  { label: t('map'), to: '/map' },
-  { label: t('tour'), to: '/tour' },
-  { label: t('community'), to: '/community' },
-]
+const items = computed(() => [
+  { label: t('nav.home'), to: '/' },
+  { label: t('nav.map'), to: '/map' },
+  { label: t('nav.tour'), to: '/tour' },
+  { label: t('nav.community'), to: '/community' },
+])
 
 const isActive = (path: string) => route.path === path
 </script>

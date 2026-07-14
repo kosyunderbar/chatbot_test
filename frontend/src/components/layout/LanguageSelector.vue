@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
-const languages = [
-  { value: 'ko', label: '한국어' },
-  { value: 'en', label: 'English' },
-]
+const languages = computed(() => [
+  { value: 'ko', label: t('lang.ko') },
+  { value: 'en', label: t('lang.en') },
+  { value: 'ja', label: t('lang.ja') },
+  { value: 'zh', label: t('lang.zh') },
+])
 </script>
 
 <template>
