@@ -43,6 +43,26 @@ export interface TourApiResponse {
 }
 
 /**
+ * Query parameters for fetching a paginated tour list.
+ */
+export interface TourListQuery {
+  page: number
+  size: number
+  category?: string
+  keyword?: string
+}
+
+/**
+ * Paginated result for a tour list response.
+ */
+export interface TourListResult {
+  items: TourItem[]
+  total: number
+  page: number
+  size: number
+}
+
+/**
  * UI model used by the Tour screen and components.
  */
 export interface TourItem {

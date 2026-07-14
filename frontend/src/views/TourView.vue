@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import BasePagination from '../components/common/BasePagination.vue'
 import TourFilter from '../components/tour/TourFilter.vue'
 import TourGrid from '../components/tour/TourGrid.vue'
 import TourSearchBar from '../components/tour/TourSearchBar.vue'
 import { useTourStore } from '../stores/tourStore'
 
 const tourStore = useTourStore()
-const { keyword, selectedCategory, tours, isLoading, errorMessage } = storeToRefs(tourStore)
+const { keyword, selectedCategory, tours, currentPage, totalPages, isLoading, errorMessage } = storeToRefs(tourStore)
 
 const handleSearch = async () => {
   await tourStore.searchTours()
+}
+
+const handlePageChange = async (page: number) => {
+  await tourStore.changePage(page)
 }
 
 onMounted(async () => {
@@ -30,7 +35,15 @@ onMounted(async () => {
       <div v-else-if="errorMessage" class="mx-auto max-w-7xl px-4 py-8 text-center text-sm text-red-500">
         {{ errorMessage }}
       </div>
-      <TourGrid v-else :tours="tours" />
+      <template v-else>
+        <TourGrid :tours="tours" />
+        <BasePagination
+          v-if="totalPages > 1"
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          @change="handlePageChange"
+        />
+      </template>
     </div>
 
     <p class="mt-8 px-4 pb-6 text-center text-xs text-gray-400 sm:px-6 lg:px-8">

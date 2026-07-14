@@ -92,7 +92,6 @@ export const deleteMockPost = async (id: number, payload: PostDeleteRequest): Pr
   })
 }
 
-// Real API functions (for when VITE_USE_MOCK_API is false)
 export const getPosts = async (params?: {
   page?: number
   size?: number

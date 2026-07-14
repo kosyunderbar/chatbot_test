@@ -1,5 +1,5 @@
 import httpClient from './httpClient'
-import type { TourCategory, TourItem } from '../types/tour'
+import type { TourCategory, TourItem, TourListQuery, TourListResult } from '../types/tour'
 
 interface LocationApiItem {
   id: number
@@ -54,35 +54,53 @@ const mapLocationToTourItem = (item: LocationApiItem): TourItem | null => {
 }
 
 const fetchLocations = async ({
-  category = 'all',
+  category,
   keyword,
-  limit,
+  page = 1,
+  size = 12,
 }: {
   category?: TourCategory | 'all'
   keyword?: string
-  limit?: number
-} = {}): Promise<TourItem[]> => {
+  page?: number
+  size?: number
+} = {}): Promise<TourListResult> => {
+  const params: Record<string, string | number | undefined> = {
+    limit: size,
+    offset: (page - 1) * size,
+  }
+
+  const normalizedKeyword = keyword?.trim()
+  if (normalizedKeyword) {
+    params.keyword = normalizedKeyword
+  }
+
+  if (category && category !== 'all') {
+    params.category = category
+  }
+
   const response = await httpClient.get<LocationListApiResponse>('/api/locations', {
-    params: {
-      category,
-      keyword: keyword?.trim() || undefined,
-      limit,
-    },
+    params,
   })
 
-  return response.data.items
+  const items = response.data.items
     .map(mapLocationToTourItem)
     .filter((item): item is TourItem => item !== null)
+
+  return {
+    items,
+    total: response.data.total,
+    page,
+    size,
+  }
 }
 
-export const getMockTours = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
-  return fetchLocations({ category })
-}
+export const getTours = async (params: TourListQuery): Promise<TourListResult> => {
+  const { page, size, category, keyword } = params
 
-export const getMockToursByCategory = async (category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
-  return fetchLocations({ category })
-}
-
-export const searchMockTours = async (keyword: string, category: TourCategory | 'all' = 'all'): Promise<TourItem[]> => {
-  return fetchLocations({ category, keyword })
+  return fetchLocations({
+    category: category === 'all' ? undefined : (category as TourCategory | undefined),
+    keyword,
+    page,
+    size,
+  })
 }

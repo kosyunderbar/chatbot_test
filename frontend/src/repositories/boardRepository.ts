@@ -5,14 +5,7 @@ import {
   createMockPost as createMockPostApi,
   updateMockPost as updateMockPostApi,
   deleteMockPost as deleteMockPostApi,
-  getPosts,
-  searchPosts,
-  getPostById,
-  createPost,
-  updatePost,
-  deletePost,
 } from '../api/boardApi'
-import { useMockApi } from '../config/appConfig'
 import type {
   BoardPost,
   PostCategory,
@@ -86,24 +79,15 @@ export function transformPostListApiResponse(response: PostListApiResponse): Boa
 }
 
 export const getMockPosts = async (): Promise<BoardPost[]> => {
-  if (useMockApi) {
-    return getMockPostsApi()
-  }
-  return getPosts()
+  return getMockPostsApi()
 }
 
 export const searchMockPosts = async (keyword: string, category: PostCategory = 'all'): Promise<BoardPost[]> => {
-  if (useMockApi) {
-    return searchMockPostsApi(keyword, category)
-  }
-  return searchPosts(keyword, category)
+  return searchMockPostsApi(keyword, category)
 }
 
 export const getMockPostById = async (id: number): Promise<BoardPost | null> => {
-  if (useMockApi) {
-    return getMockPostByIdApi(id)
-  }
-  return getPostById(id)
+  return getMockPostByIdApi(id)
 }
 
 export const createMockPost = async (payload: PostFormData): Promise<BoardPost> => {
@@ -115,10 +99,7 @@ export const createMockPost = async (payload: PostFormData): Promise<BoardPost> 
     category: payload.category || undefined,
   }
 
-  if (useMockApi) {
-    return createMockPostApi(createPayload)
-  }
-  return createPost(createPayload)
+  return createMockPostApi(createPayload)
 }
 
 export const updateMockPost = async (id: number, payload: PostFormData): Promise<BoardPost> => {
@@ -130,10 +111,7 @@ export const updateMockPost = async (id: number, payload: PostFormData): Promise
     category: payload.category || undefined,
   }
 
-  if (useMockApi) {
-    return updateMockPostApi(id, updatePayload)
-  }
-  return updatePost(id, updatePayload)
+  return updateMockPostApi(id, updatePayload)
 }
 
 export const deleteMockPost = async (id: number, payload: { password: string }): Promise<void> => {
@@ -141,8 +119,5 @@ export const deleteMockPost = async (id: number, payload: { password: string }):
     password: payload.password,
   }
 
-  if (useMockApi) {
-    return deleteMockPostApi(id, deletePayload)
-  }
-  return deletePost(id, deletePayload)
+  return deleteMockPostApi(id, deletePayload)
 }
