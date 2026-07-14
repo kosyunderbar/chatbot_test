@@ -38,8 +38,8 @@ const handleKeydown = (event: KeyboardEvent) => {
 </script>
 
 <template>
-  <section class="mx-auto w-full max-w-5xl px-4 pb-6 sm:px-6 lg:px-8">
-    <form class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row" @submit="handleSubmit">
+  <section class="mx-auto w-full flex-shrink-0 px-4 pb-4 sm:px-6 lg:px-8">
+    <form class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:flex-row" @submit="handleSubmit">
       <BaseInput
         :model-value="modelValue"
         placeholder="메시지를 입력하세요"

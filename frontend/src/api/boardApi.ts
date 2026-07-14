@@ -27,8 +27,8 @@ export const mapPostApiItemToBoardPost = (item: PostApiItem): BoardPost => ({
   viewCount: item.view_count,
   likeCount: item.like_count,
   isLiked: item.is_liked,
-  tags: item.tags.map((tag) => tag.name),
-  images: item.images.map((image) => ({ ...image, url: resolveImageUrl(image.url) })),
+  tags: item.tags?.map((tag) => tag.name),
+  images: item.images?.map((image) => ({ ...image, url: resolveImageUrl(image.url) })),
 })
 
 export const getPosts = async (params?: {

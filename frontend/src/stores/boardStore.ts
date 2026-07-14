@@ -146,7 +146,7 @@ export const useBoardStore = defineStore('board', () => {
   }
 
   const toggleLike = async (post: BoardPost) => {
-    const result = await toggleBoardPostLike(post.id, post.isLiked)
+    const result = await toggleBoardPostLike(post.id, post.isLiked ?? false)
     const applyLike = (item: BoardPost) => {
       if (item.id === post.id) {
         item.isLiked = result.liked

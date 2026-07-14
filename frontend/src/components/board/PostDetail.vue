@@ -63,7 +63,7 @@ const handleBack = () => emit('back')
           <span v-for="tag in props.post.tags" :key="tag" class="rounded-full bg-sky-50 px-2.5 py-1 text-sm text-sky-700">#{{ tag }}</span>
         </div>
       </div>
-      <div v-if="props.post.images.length" class="space-y-2">
+      <div v-if="props.post.images?.length" class="space-y-2">
         <p class="text-sm text-gray-500">첨부 이미지</p>
         <div class="flex flex-wrap gap-3">
           <img v-for="image in props.post.images" :key="image.id" :src="image.url" :alt="image.original_name" class="h-32 w-auto rounded-xl border border-gray-200 object-cover" />

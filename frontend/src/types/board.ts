@@ -14,11 +14,11 @@ export interface PostApiItem {
   content: string
   region: string | null
   category: string | null
-  view_count: number
-  like_count: number
-  is_liked: boolean
-  tags: TagApiItem[]
-  images: PostImageApiItem[]
+  view_count?: number
+  like_count?: number
+  is_liked?: boolean
+  tags?: TagApiItem[]
+  images?: PostImageApiItem[]
   created_at: string
   updated_at: string
 }
@@ -104,10 +104,10 @@ export interface BoardPost {
   createdAt: string
   updatedAt: string
   author?: string
-  viewCount: number
+  viewCount?: number
   commentCount?: number
-  likeCount: number
-  isLiked: boolean
-  tags: string[]
-  images: PostImageApiItem[]
+  likeCount?: number
+  isLiked?: boolean
+  tags?: string[]
+  images?: PostImageApiItem[]
 }

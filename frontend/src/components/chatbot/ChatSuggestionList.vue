@@ -13,7 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <section class="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+  <section class="mx-auto w-full max-w-5xl flex-shrink-0 px-4 pt-3 sm:px-6 lg:px-8">
     <div class="flex flex-wrap gap-2 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
       <button
         v-for="suggestion in suggestions"

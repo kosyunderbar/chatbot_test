@@ -9,7 +9,6 @@ const items = [
   { label: t('home'), to: '/' },
   { label: t('tour'), to: '/tour' },
   { label: t('community'), to: '/community' },
-  { label: t('chatbot'), to: '/chatbot' },
 ]
 
 const isActive = (path: string) => route.path === path
